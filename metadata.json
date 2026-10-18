@@ -1,0 +1,8 @@
+{
+  "name": "Remix Terbaru Yaxiya Jewelry — Shipping Address Manager",
+  "description": "Aplikasi manajemen alamat pengiriman, multi-alamat pelanggan, jasa kirim Indonesia, cetak label thermal 100x150 mm dan HVS A4, serta sinkronisasi Google Sheets untuk Yaxiya Jewelry.",
+  "requestFramePermissions": [],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}
