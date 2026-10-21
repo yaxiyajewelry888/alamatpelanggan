@@ -468,22 +468,47 @@ class DatabaseEngine {
 
     const customerName = customer.customer_name;
     const customerId = customer.customer_id;
+    const idUpper = id.trim().toUpperCase();
 
-    // Hard delete from database memory & file
-    this.data.customers = this.data.customers.filter(c => c.customer_id !== id);
+    // Hard delete ONLY this selected customer from database memory & file
+    this.data.customers = this.data.customers.filter(c => c.customer_id.trim().toUpperCase() !== idUpper);
 
-    // Hard delete associated addresses
-    const relatedAddresses = this.data.addresses.filter(a => a.customer_id === id);
+    // Hard delete associated addresses belonging ONLY to this customer
+    const relatedAddresses = this.data.addresses.filter(a => a.customer_id.trim().toUpperCase() === idUpper);
     for (const addr of relatedAddresses) {
-      this.enqueueSync('ALAMAT_PENGIRIMAN', addr.address_id, 'DELETE', { address_id: addr.address_id });
+      this.enqueueSync('ALAMAT_PENGIRIMAN', addr.address_id, 'DELETE', { address_id: addr.address_id, customer_id: customerId });
     }
-    this.data.addresses = this.data.addresses.filter(a => a.customer_id !== id);
+    this.data.addresses = this.data.addresses.filter(a => a.customer_id.trim().toUpperCase() !== idUpper);
 
-    this.logActivity('HAPUS_PELANGGAN', `Pelanggan dihapus permanen: ${customerName} (${customerId}) dan baris di spreadsheet dihapus`, customerId);
+    this.logActivity('HAPUS_PELANGGAN', `Pelanggan dihapus permanen: ${customerName} (${customerId}) dan seluruh alamat pengiriman terkait dihapus`, customerId);
     this.enqueueSync('PELANGGAN', customerId, 'DELETE', { customer_id: customerId });
 
     this.save();
     return { success: true, customer_id: id };
+  }
+
+  public deleteCustomersBulk(ids: string[]): { success: boolean; deletedCount: number; deletedIds: string[] } {
+    if (!ids || ids.length === 0) return { success: true, deletedCount: 0, deletedIds: [] };
+    const idSet = new Set(ids.map(x => x.trim().toUpperCase()));
+    const toDeleteCusts = this.data.customers.filter(c => idSet.has(c.customer_id.trim().toUpperCase()));
+    
+    // Hard delete ONLY selected customers
+    this.data.customers = this.data.customers.filter(c => !idSet.has(c.customer_id.trim().toUpperCase()));
+    
+    // Delete addresses belonging ONLY to these selected customers
+    const relatedAddresses = this.data.addresses.filter(a => idSet.has(a.customer_id.trim().toUpperCase()));
+    for (const addr of relatedAddresses) {
+      this.enqueueSync('ALAMAT_PENGIRIMAN', addr.address_id, 'DELETE', { address_id: addr.address_id, customer_id: addr.customer_id });
+    }
+    this.data.addresses = this.data.addresses.filter(a => !idSet.has(a.customer_id.trim().toUpperCase()));
+
+    for (const c of toDeleteCusts) {
+      this.enqueueSync('PELANGGAN', c.customer_id, 'DELETE', { customer_id: c.customer_id });
+    }
+
+    this.logActivity('HAPUS_PELANGGAN', `${toDeleteCusts.length} pelanggan terpilih dihapus permanen`);
+    this.save();
+    return { success: true, deletedCount: toDeleteCusts.length, deletedIds: toDeleteCusts.map(c => c.customer_id) };
   }
 
   // --- ADDRESS METHODS ---
@@ -705,6 +730,7 @@ class DatabaseEngine {
     }
 
     const timestamp = getCurrentDateFormatted();
+    if (updates.customer_id !== undefined && updates.customer_id.trim()) address.customer_id = updates.customer_id.trim();
     if (updates.address_label !== undefined) address.address_label = updates.address_label.trim();
     if (updates.recipient_name !== undefined) address.recipient_name = updates.recipient_name.trim();
     if (updates.recipient_phone !== undefined) address.recipient_phone = updates.recipient_phone.trim();
@@ -748,15 +774,33 @@ class DatabaseEngine {
 
     const label = address.address_label;
     const cid = address.customer_id;
+    const idUpper = addressId.trim().toUpperCase();
 
-    // Hard delete from memory & file
-    this.data.addresses = this.data.addresses.filter(a => a.address_id !== addressId);
+    // Hard delete ONLY this selected address from memory & file
+    this.data.addresses = this.data.addresses.filter(a => a.address_id.trim().toUpperCase() !== idUpper);
 
     this.logActivity('HAPUS_ALAMAT', `Alamat dihapus permanen: ${label} (${addressId}) dari pelanggan ${cid} dan baris spreadsheet dihapus`, addressId);
     this.enqueueSync('ALAMAT_PENGIRIMAN', addressId, 'DELETE', { address_id: addressId });
 
     this.save();
     return { success: true, address_id: addressId };
+  }
+
+  public deleteAddressesBulk(addressIds: string[]): { success: boolean; deletedCount: number; deletedIds: string[] } {
+    if (!addressIds || addressIds.length === 0) return { success: true, deletedCount: 0, deletedIds: [] };
+    const idSet = new Set(addressIds.map(x => x.trim().toUpperCase()));
+    const toDeleteAddrs = this.data.addresses.filter(a => idSet.has(a.address_id.trim().toUpperCase()));
+
+    // Hard delete ONLY the selected addresses
+    this.data.addresses = this.data.addresses.filter(a => !idSet.has(a.address_id.trim().toUpperCase()));
+
+    for (const a of toDeleteAddrs) {
+      this.enqueueSync('ALAMAT_PENGIRIMAN', a.address_id, 'DELETE', { address_id: a.address_id });
+    }
+
+    this.logActivity('HAPUS_ALAMAT', `${toDeleteAddrs.length} alamat terpilih dihapus permanen`);
+    this.save();
+    return { success: true, deletedCount: toDeleteAddrs.length, deletedIds: toDeleteAddrs.map(a => a.address_id) };
   }
 
   // --- COURIER METHODS ---
@@ -1012,33 +1056,65 @@ class DatabaseEngine {
 
   public importFullDatabase(payload: any): { customers: number; addresses: number; couriers: number } {
     if (payload.customers && Array.isArray(payload.customers)) {
-      this.data.customers = payload.customers
-        .filter((c: any) => c && c.customer_id && c.status !== 'deleted')
-        .map((c: any) => {
-          let grp = (c.group_name || '').trim();
-          // Clean legacy auto-forced HERMES or placeholder '-' if not explicitly specified by user
-          if (grp === '-' || grp === ' ' || (grp === 'HERMES' && !c.notes?.toLowerCase().includes('hermes'))) {
-            grp = '';
+      const seenCustIds = new Set<string>();
+      const uniqueCustomers: Customer[] = [];
+
+      for (const rawCust of payload.customers) {
+        if (!rawCust || !rawCust.customer_id || rawCust.status === 'deleted') continue;
+        let cid = String(rawCust.customer_id).trim();
+        const cidUpper = cid.toUpperCase();
+
+        if (seenCustIds.has(cidUpper)) {
+          // Check if this is an identical duplicate row, if so skip it
+          const existing = uniqueCustomers.find(x => x.customer_id.toUpperCase() === cidUpper);
+          if (existing && existing.customer_name.trim().toLowerCase() === (rawCust.customer_name || '').trim().toLowerCase()) {
+            continue;
           }
-          return {
-            ...c,
-            group_name: grp
-          };
+          // If different customer had accidental ID clash, make unique
+          cid = `${cid}_2`;
+        }
+        seenCustIds.add(cid.toUpperCase());
+
+        let grp = (rawCust.group_name || '').trim();
+        if (grp === '-' || grp === ' ' || (grp === 'HERMES' && !rawCust.notes?.toLowerCase().includes('hermes'))) {
+          grp = '';
+        }
+
+        uniqueCustomers.push({
+          ...rawCust,
+          customer_id: cid,
+          group_name: grp
         });
+      }
+      this.data.customers = uniqueCustomers;
     }
+
     if (payload.addresses && Array.isArray(payload.addresses)) {
-      this.data.addresses = payload.addresses
-        .filter((a: any) => a && a.address_id && a.status !== 'deleted')
-        .map((a: any) => {
-          let grp = (a.group_name || '').trim();
-          if (grp === '-' || grp === ' ' || (grp === 'HERMES' && !a.shipping_notes?.toLowerCase().includes('hermes'))) {
-            grp = '';
-          }
-          return {
-            ...a,
-            group_name: grp
-          };
+      const seenAddrIds = new Set<string>();
+      const uniqueAddresses: Address[] = [];
+
+      for (const rawAddr of payload.addresses) {
+        if (!rawAddr || !rawAddr.address_id || rawAddr.status === 'deleted') continue;
+        const aid = String(rawAddr.address_id).trim();
+        const aidUpper = aid.toUpperCase();
+
+        if (seenAddrIds.has(aidUpper)) {
+          continue; // Skip duplicate address row
+        }
+        seenAddrIds.add(aidUpper);
+
+        let grp = (rawAddr.group_name || '').trim();
+        if (grp === '-' || grp === ' ' || (grp === 'HERMES' && !rawAddr.shipping_notes?.toLowerCase().includes('hermes'))) {
+          grp = '';
+        }
+
+        uniqueAddresses.push({
+          ...rawAddr,
+          address_id: aid,
+          group_name: grp
         });
+      }
+      this.data.addresses = uniqueAddresses;
     }
     if (payload.address_groups && Array.isArray(payload.address_groups)) {
       this.data.address_groups = payload.address_groups;

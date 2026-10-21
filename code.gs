@@ -74,6 +74,7 @@ function onOpen() {
     .addItem('🎨 Format Header & Gaya Elegan', 'menuFormatHeaders')
     .addSeparator()
     .addItem('📊 Cek Total Data Tersimpan', 'menuCheckStats')
+    .addItem('🗑️ Hapus Permanen Baris "deleted" (Purge)', 'menuPurgeDeleted')
     .addItem('📦 Buat Lembar Cadangan (Backup Data)', 'menuCreateBackup')
     .addToUi();
 }
@@ -136,6 +137,11 @@ function doGet(e) {
  * Handler POST HTTP Request (Untuk Menyimpan / Sinkronisasi Data dari Website ke Spreadsheet)
  */
 function doPost(e) {
+  var lock = LockService.getScriptLock();
+  try {
+    lock.waitLock(30000); // Mencegah race condition dan duplikasi data
+  } catch (lockErr) {}
+
   try {
     if (!e || !e.postData || !e.postData.contents) {
       return jsonResponse({
@@ -168,6 +174,17 @@ function doPost(e) {
       return jsonResponse({ success: true, message: 'Baris data pelanggan dan alamat terkait berhasil dihapus permanen dari Spreadsheet.' });
     }
 
+    if (action === 'bulkDeleteCustomers') {
+      var custIds = payload.customer_ids || [];
+      for (var b = 0; b < custIds.length; b++) {
+        deleteCustomerRow(custIds[b]);
+      }
+      return jsonResponse({
+        success: true,
+        message: custIds.length + ' baris pelanggan terpilih berhasil dihapus dari Spreadsheet.'
+      });
+    }
+
     if (action === 'archiveCustomer') {
       updateCustomerStatus(payload.customer_id, 'archived');
       return jsonResponse({ success: true, message: 'Status pelanggan berhasil diarsipkan di Spreadsheet.' });
@@ -181,6 +198,17 @@ function doPost(e) {
     if (action === 'deleteAddress') {
       deleteAddressRow(payload.address_id);
       return jsonResponse({ success: true, message: 'Baris alamat berhasil dihapus permanen dari Spreadsheet.' });
+    }
+
+    if (action === 'bulkDeleteAddresses') {
+      var addrIds = payload.address_ids || [];
+      for (var c = 0; c < addrIds.length; c++) {
+        deleteAddressRow(addrIds[c]);
+      }
+      return jsonResponse({
+        success: true,
+        message: addrIds.length + ' baris alamat terpilih berhasil dihapus dari Spreadsheet.'
+      });
     }
 
     if (action === 'archiveAddress') {
@@ -222,6 +250,11 @@ function doPost(e) {
       success: false,
       error: 'Gagal memproses sinkronisasi: ' + err.toString()
     });
+  } finally {
+    try {
+      SpreadsheetApp.flush();
+      lock.releaseLock();
+    } catch (e) {}
   }
 }
 
@@ -580,7 +613,7 @@ function getAllDataFromSheets() {
 }
 
 /**
- * Upsert baris Pelanggan tunggal
+ * Upsert baris Pelanggan tunggal (Pastikan hanya 1 baris di sheet PELANGGAN, hapus duplikat jika ada)
  */
 function upsertCustomerRow(customer) {
   if (!customer || !customer.customer_id) return;
@@ -594,14 +627,13 @@ function upsertCustomerRow(customer) {
 
   var id = String(customer.customer_id).trim();
   var lastRow = sheet.getLastRow();
-  var rowIndex = -1;
+  var matchingRows = [];
 
   if (lastRow > 1) {
     var colA = sheet.getRange(2, 1, lastRow - 1, 1).getValues();
     for (var i = 0; i < colA.length; i++) {
       if (String(colA[i][0]).trim().toUpperCase() === id.toUpperCase()) {
-        rowIndex = i + 2;
-        break;
+        matchingRows.push(i + 2);
       }
     }
   }
@@ -618,8 +650,13 @@ function upsertCustomerRow(customer) {
     customer.status || 'active'
   ];
 
-  if (rowIndex > 0) {
-    sheet.getRange(rowIndex, 1, 1, rowData.length).setValues([rowData]);
+  if (matchingRows.length > 0) {
+    // Perbarui baris pertama yang cocok
+    sheet.getRange(matchingRows[0], 1, 1, rowData.length).setValues([rowData]);
+    // Hapus baris duplikat berikutnya jika ada sehingga tepat hanya 1 baris tersisa
+    for (var d = matchingRows.length - 1; d >= 1; d--) {
+      sheet.deleteRow(matchingRows[d]);
+    }
   } else {
     sheet.appendRow(rowData);
   }
@@ -686,7 +723,7 @@ function deleteCourierRow(courierId) {
 }
 
 /**
- * Hapus Baris Pelanggan dan Alamat Terkait Secara Permanen
+ * Hapus Baris Pelanggan dan Alamat Terkait Secara Permanen dari Spreadsheet
  */
 function deleteCustomerRow(customerId) {
   if (!customerId) return;
@@ -694,6 +731,7 @@ function deleteCustomerRow(customerId) {
   var custSheet = ss.getSheetByName(SHEET_CONFIG.PELANGGAN.name);
   var id = String(customerId).trim().toUpperCase();
 
+  // 1. Hapus baris pelanggan dari sheet PELANGGAN
   if (custSheet && custSheet.getLastRow() > 1) {
     var colA = custSheet.getRange(2, 1, custSheet.getLastRow() - 1, 1).getValues();
     for (var i = colA.length - 1; i >= 0; i--) {
@@ -703,7 +741,7 @@ function deleteCustomerRow(customerId) {
     }
   }
 
-  // Hapus semua alamat milik pelanggan ini dari ALAMAT_PENGIRIMAN
+  // 2. Hapus SEMUA alamat pengiriman dengan customer_id yang sama dari sheet ALAMAT_PENGIRIMAN
   var addrSheet = ss.getSheetByName(SHEET_CONFIG.ALAMAT_PENGIRIMAN.name);
   if (addrSheet && addrSheet.getLastRow() > 1) {
     var colB = addrSheet.getRange(2, 2, addrSheet.getLastRow() - 1, 1).getValues();
@@ -713,6 +751,9 @@ function deleteCustomerRow(customerId) {
       }
     }
   }
+
+  // 3. Bersihkan baris berstatus 'deleted' jika ada
+  cleanAllDeletedRows();
 }
 
 /**
@@ -742,7 +783,7 @@ function updateCustomerStatus(customerId, status) {
 }
 
 /**
- * Upsert baris Alamat tunggal
+ * Upsert baris Alamat tunggal (Pastikan hanya 1 baris per address_id di sheet ALAMAT_PENGIRIMAN)
  */
 function upsertAddressRow(address) {
   if (!address || !address.address_id) return;
@@ -756,14 +797,13 @@ function upsertAddressRow(address) {
 
   var id = String(address.address_id).trim();
   var lastRow = sheet.getLastRow();
-  var rowIndex = -1;
+  var matchingRows = [];
 
   if (lastRow > 1) {
     var colA = sheet.getRange(2, 1, lastRow - 1, 1).getValues();
     for (var i = 0; i < colA.length; i++) {
       if (String(colA[i][0]).trim().toUpperCase() === id.toUpperCase()) {
-        rowIndex = i + 2;
-        break;
+        matchingRows.push(i + 2);
       }
     }
   }
@@ -790,8 +830,11 @@ function upsertAddressRow(address) {
     address.status || 'active'
   ];
 
-  if (rowIndex > 0) {
-    sheet.getRange(rowIndex, 1, 1, rowData.length).setValues([rowData]);
+  if (matchingRows.length > 0) {
+    sheet.getRange(matchingRows[0], 1, 1, rowData.length).setValues([rowData]);
+    for (var d = matchingRows.length - 1; d >= 1; d--) {
+      sheet.deleteRow(matchingRows[d]);
+    }
   } else {
     sheet.appendRow(rowData);
   }
@@ -815,6 +858,9 @@ function deleteAddressRow(addressId) {
       sheet.deleteRow(i + 2);
     }
   }
+
+  // Bersihkan baris berstatus 'deleted' jika ada
+  cleanAllDeletedRows();
 }
 
 /**
@@ -955,8 +1001,52 @@ function menuCreateBackup() {
   backupSheet.getRange(3, 1).setValue('Total Pelanggan: ' + allData.customers.length);
   backupSheet.getRange(4, 1).setValue('Total Alamat: ' + allData.addresses.length);
   backupSheet.getRange(6, 1).setValue(JSON.stringify(allData));
-  
   SpreadsheetApp.getUi().alert('📦 Lembar Cadangan Berhasil Dibuat:\nSheet "' + backupName + '"');
+}
+
+/**
+ * Bersihkan & Hapus Permanen Seluruh Baris yang Berstatus 'deleted' dari Sheet PELANGGAN dan ALAMAT_PENGIRIMAN
+ */
+function cleanAllDeletedRows() {
+  try {
+    var ss = SpreadsheetApp.getActiveSpreadsheet();
+    
+    // 1. Bersihkan dari Sheet PELANGGAN (Kolom 8: status)
+    var custSheet = ss.getSheetByName(SHEET_CONFIG.PELANGGAN.name);
+    if (custSheet && custSheet.getLastRow() > 1) {
+      var lastRow = custSheet.getLastRow();
+      var statusCol = custSheet.getRange(2, 8, lastRow - 1, 1).getValues();
+      for (var i = statusCol.length - 1; i >= 0; i--) {
+        var val = String(statusCol[i][0] || '').trim().toLowerCase();
+        if (val === 'deleted') {
+          custSheet.deleteRow(i + 2);
+        }
+      }
+    }
+
+    // 2. Bersihkan dari Sheet ALAMAT_PENGIRIMAN (Kolom 18: status)
+    var addrSheet = ss.getSheetByName(SHEET_CONFIG.ALAMAT_PENGIRIMAN.name);
+    if (addrSheet && addrSheet.getLastRow() > 1) {
+      var lastRowAddr = addrSheet.getLastRow();
+      var statusColAddr = addrSheet.getRange(2, 18, lastRowAddr - 1, 1).getValues();
+      for (var j = statusColAddr.length - 1; j >= 0; j--) {
+        var valAddr = String(statusColAddr[j][0] || '').trim().toLowerCase();
+        if (valAddr === 'deleted') {
+          addrSheet.deleteRow(j + 2);
+        }
+      }
+    }
+  } catch (e) {
+    // Abaikan jika terjadi error pembersihan
+  }
+}
+
+/**
+ * Menu Handler: Purge Deleted Rows dari Toolbar Google Sheets
+ */
+function menuPurgeDeleted() {
+  cleanAllDeletedRows();
+  SpreadsheetApp.getUi().alert('🗑️ Berhasil!\nSemua baris berstatus "deleted" di sheet Pelanggan dan Alamat Pengiriman telah dihapus permanen.');
 }
 
 /**

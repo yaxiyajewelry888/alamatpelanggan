@@ -2,12 +2,12 @@
   "customers": [
     {
       "customer_id": "PL0110",
-      "customer_name": "Ko Jonatan",
+      "customer_name": "Ko Jonatan ( Toko Yolies )",
       "primary_phone": "082230779575",
       "group_name": "",
       "notes": "",
       "created_at": "",
-      "updated_at": "Sun Oct 18 2026 04:51:04 GMT+0700 (中南半島時間)",
+      "updated_at": "Mon Oct 19 2026 04:53:49 GMT+0700 (中南半島時間)",
       "status": "active"
     },
     {
@@ -341,7 +341,7 @@
       "status": "active"
     },
     {
-      "customer_id": "PL0352",
+      "customer_id": "PL0353",
       "customer_name": "Cahaya Silver Arthur/Permata Ari \nSilver",
       "primary_phone": "085272200385",
       "group_name": "",
@@ -363,7 +363,7 @@
     {
       "customer_id": "PL5674",
       "customer_name": "Amrizal Jambi",
-      "primary_phone": "082298238381",
+      "primary_phone": "82298238381",
       "group_name": "",
       "notes": "",
       "created_at": "",
@@ -377,19 +377,19 @@
       "customer_id": "PL0110",
       "address_label": "Rumah",
       "group_name": "",
-      "recipient_name": "Ko Jonatan ( Toko Yolies)",
+      "recipient_name": "Ko Jonatan (Toko Yolies)",
       "recipient_phone": "082230779575",
       "full_address": "PGS Lt.1 Blok C 18 No.5 Surabaya",
       "village": "",
       "district": "",
-      "city": "",
+      "city": "Surabaya",
       "province": "",
       "postal_code": "",
       "shipping_courier": "HTI",
       "shipping_service": "Cargo",
       "shipping_notes": "",
       "created_at": "",
-      "updated_at": "",
+      "updated_at": "Mon Oct 19 2026 04:55:38 GMT+0700 (中南半島時間)",
       "status": "active"
     },
     {
@@ -498,7 +498,7 @@
       "address_label": "Rumah",
       "group_name": "",
       "recipient_name": "Anik purwani",
-      "recipient_phone": "082136058781",
+      "recipient_phone": "82136058781",
       "full_address": "desa duren rt07 rw 02, Kelurahan Pilangsari, Kecamatan gesi, Kabupaten sragen Jawa tengah ID 5762",
       "village": "",
       "district": "",
@@ -1054,7 +1054,7 @@
     },
     {
       "address_id": "ADD-12380",
-      "customer_id": "PL0352",
+      "customer_id": "PL0353",
       "address_label": "Rumah",
       "group_name": "",
       "recipient_name": "Cahaya Silver Arthur/Permata Ari \nSilver",
@@ -1098,7 +1098,7 @@
       "address_label": "Rumah",
       "group_name": "",
       "recipient_name": "Amrizal Jambi",
-      "recipient_phone": "082298238381",
+      "recipient_phone": "82298238381",
       "full_address": "(Ambil sendiri di kantor JNT )Kecamatan. Anjongan Jl.Sungai Pinyuh Anjongan Mempawah\n Pontianak Kalimantan Barat",
       "village": "",
       "district": "",
@@ -2303,9 +2303,1170 @@
       "error_message": null,
       "created_at": "18-10-2026 05:11:21",
       "synced_at": "18-10-2026 05:11:24"
+    },
+    {
+      "sync_id": "SYNC-1792384345692-112ae",
+      "entity_type": "PELANGGAN",
+      "entity_id": "TEST-SCENARIO-1",
+      "operation": "CREATE",
+      "payload": {
+        "customer_id": "TEST-SCENARIO-1",
+        "customer_name": "Test Scenario User",
+        "primary_phone": "081122334455",
+        "group_name": "",
+        "notes": "",
+        "created_at": "19-10-2026 04:32:25",
+        "updated_at": "19-10-2026 04:32:25",
+        "status": "active"
+      },
+      "sync_status": "SYNCED",
+      "retry_count": 0,
+      "error_message": null,
+      "created_at": "19-10-2026 04:32:25",
+      "synced_at": "20-10-2026 03:14:42"
+    },
+    {
+      "sync_id": "SYNC-1792384345703-2lmyj",
+      "entity_type": "ALAMAT_PENGIRIMAN",
+      "entity_id": "ADDR-000001",
+      "operation": "CREATE",
+      "payload": {
+        "address_id": "ADDR-000001",
+        "customer_id": "TEST-SCENARIO-1",
+        "address_label": "Alamat Rumah",
+        "recipient_name": "Test Scenario User",
+        "recipient_phone": "081122334455",
+        "full_address": "Jl. Melati No. 10",
+        "village": "",
+        "district": "",
+        "city": "Jakarta",
+        "province": "DKI Jakarta",
+        "postal_code": "12345",
+        "shipping_courier": "",
+        "shipping_service": "",
+        "shipping_notes": "",
+        "group_name": "",
+        "created_at": "19-10-2026 04:32:25",
+        "updated_at": "19-10-2026 04:32:25",
+        "status": "active"
+      },
+      "sync_status": "SYNCED",
+      "retry_count": 0,
+      "error_message": null,
+      "created_at": "19-10-2026 04:32:25",
+      "synced_at": "19-10-2026 04:37:38"
+    },
+    {
+      "sync_id": "SYNC-1792384345714-fln12",
+      "entity_type": "ALAMAT_PENGIRIMAN",
+      "entity_id": "ADDR-000002",
+      "operation": "CREATE",
+      "payload": {
+        "address_id": "ADDR-000002",
+        "customer_id": "TEST-SCENARIO-1",
+        "address_label": "Alamat Kantor",
+        "recipient_name": "Test Scenario User",
+        "recipient_phone": "081122334455",
+        "full_address": "Gedung Wisma 46 Lt. 12",
+        "village": "",
+        "district": "",
+        "city": "Jakarta",
+        "province": "DKI Jakarta",
+        "postal_code": "10220",
+        "shipping_courier": "",
+        "shipping_service": "",
+        "shipping_notes": "",
+        "group_name": "",
+        "created_at": "19-10-2026 04:32:25",
+        "updated_at": "19-10-2026 04:32:25",
+        "status": "active"
+      },
+      "sync_status": "SYNCED",
+      "retry_count": 0,
+      "error_message": null,
+      "created_at": "19-10-2026 04:32:25",
+      "synced_at": "19-10-2026 04:37:43"
+    },
+    {
+      "sync_id": "SYNC-1792384345730-6m2iz",
+      "entity_type": "ALAMAT_PENGIRIMAN",
+      "entity_id": "ADDR-000001",
+      "operation": "DELETE",
+      "payload": {
+        "address_id": "ADDR-000001"
+      },
+      "sync_status": "SYNCED",
+      "retry_count": 0,
+      "error_message": null,
+      "created_at": "19-10-2026 04:32:25",
+      "synced_at": "19-10-2026 04:37:38"
+    },
+    {
+      "sync_id": "SYNC-1792384345737-ovseu",
+      "entity_type": "ALAMAT_PENGIRIMAN",
+      "entity_id": "ADDR-000002",
+      "operation": "DELETE",
+      "payload": {
+        "address_id": "ADDR-000002"
+      },
+      "sync_status": "SYNCED",
+      "retry_count": 0,
+      "error_message": null,
+      "created_at": "19-10-2026 04:32:25",
+      "synced_at": "19-10-2026 04:37:43"
+    },
+    {
+      "sync_id": "SYNC-1792384345740-n92sb",
+      "entity_type": "PELANGGAN",
+      "entity_id": "TEST-SCENARIO-1",
+      "operation": "DELETE",
+      "payload": {
+        "customer_id": "TEST-SCENARIO-1"
+      },
+      "sync_status": "SYNCED",
+      "retry_count": 0,
+      "error_message": null,
+      "created_at": "19-10-2026 04:32:25",
+      "synced_at": "20-10-2026 03:14:46"
+    },
+    {
+      "sync_id": "SYNC-1792384653447-ffb2p",
+      "entity_type": "PELANGGAN",
+      "entity_id": "YX-TEST-SYNC1",
+      "operation": "CREATE",
+      "payload": {
+        "customer_id": "YX-TEST-SYNC1",
+        "customer_name": "Budi Santoso E2E",
+        "primary_phone": "08129998881",
+        "group_name": "",
+        "notes": "Testing single add",
+        "created_at": "19-10-2026 04:37:33",
+        "updated_at": "19-10-2026 04:37:33",
+        "status": "active"
+      },
+      "sync_status": "SYNCED",
+      "retry_count": 0,
+      "error_message": null,
+      "created_at": "19-10-2026 04:37:33",
+      "synced_at": "19-10-2026 04:37:35"
+    },
+    {
+      "sync_id": "SYNC-1792384653453-ux06a",
+      "entity_type": "ALAMAT_PENGIRIMAN",
+      "entity_id": "ADDR-000001",
+      "operation": "CREATE",
+      "payload": {
+        "address_id": "ADDR-000001",
+        "customer_id": "YX-TEST-SYNC1",
+        "address_label": "Alamat Rumah",
+        "recipient_name": "Budi Santoso E2E",
+        "recipient_phone": "08129998881",
+        "full_address": "Jl. Merdeka No. 45",
+        "village": "",
+        "district": "",
+        "city": "Jakarta Pusat",
+        "province": "DKI Jakarta",
+        "postal_code": "10110",
+        "shipping_courier": "",
+        "shipping_service": "",
+        "shipping_notes": "",
+        "group_name": "",
+        "created_at": "19-10-2026 04:37:33",
+        "updated_at": "19-10-2026 04:37:33",
+        "status": "active"
+      },
+      "sync_status": "SYNCED",
+      "retry_count": 0,
+      "error_message": null,
+      "created_at": "19-10-2026 04:37:33",
+      "synced_at": "19-10-2026 04:37:38"
+    },
+    {
+      "sync_id": "SYNC-1792384660554-5jfqe",
+      "entity_type": "ALAMAT_PENGIRIMAN",
+      "entity_id": "ADDR-000002",
+      "operation": "CREATE",
+      "payload": {
+        "address_id": "ADDR-000002",
+        "customer_id": "YX-TEST-SYNC1",
+        "address_label": "Alamat Kantor",
+        "recipient_name": "Budi Kantor",
+        "recipient_phone": "08129998882",
+        "full_address": "Sudirman Tower Lt. 15",
+        "village": "",
+        "district": "",
+        "city": "Jakarta Selatan",
+        "province": "DKI Jakarta",
+        "postal_code": "12190",
+        "shipping_courier": "",
+        "shipping_service": "",
+        "shipping_notes": "",
+        "group_name": "",
+        "created_at": "19-10-2026 04:37:40",
+        "updated_at": "19-10-2026 04:37:40",
+        "status": "active"
+      },
+      "sync_status": "SYNCED",
+      "retry_count": 0,
+      "error_message": null,
+      "created_at": "19-10-2026 04:37:40",
+      "synced_at": "19-10-2026 04:37:43"
+    },
+    {
+      "sync_id": "SYNC-1792384665689-cxyfo",
+      "entity_type": "ALAMAT_PENGIRIMAN",
+      "entity_id": "ADDR-000001",
+      "operation": "DELETE",
+      "payload": {
+        "address_id": "ADDR-000001"
+      },
+      "sync_status": "SYNCED",
+      "retry_count": 0,
+      "error_message": null,
+      "created_at": "19-10-2026 04:37:45",
+      "synced_at": "19-10-2026 04:38:07"
+    },
+    {
+      "sync_id": "SYNC-1792384689714-yzwsh",
+      "entity_type": "ALAMAT_PENGIRIMAN",
+      "entity_id": "ADDR-000002",
+      "operation": "DELETE",
+      "payload": {
+        "address_id": "ADDR-000002"
+      },
+      "sync_status": "SYNCED",
+      "retry_count": 0,
+      "error_message": null,
+      "created_at": "19-10-2026 04:38:09",
+      "synced_at": "20-10-2026 03:14:49"
+    },
+    {
+      "sync_id": "SYNC-1792384689719-2f1lj",
+      "entity_type": "PELANGGAN",
+      "entity_id": "YX-TEST-SYNC1",
+      "operation": "DELETE",
+      "payload": {
+        "customer_id": "YX-TEST-SYNC1"
+      },
+      "sync_status": "SYNCED",
+      "retry_count": 0,
+      "error_message": null,
+      "created_at": "19-10-2026 04:38:09",
+      "synced_at": "19-10-2026 04:38:25"
+    },
+    {
+      "sync_id": "SYNC-1792467053910-ij5ac",
+      "entity_type": "PELANGGAN",
+      "entity_id": "TEST-VERIF-1792467053909",
+      "operation": "CREATE",
+      "payload": {
+        "customer_id": "TEST-VERIF-1792467053909-EDITED",
+        "customer_name": "Verifikasi Nama Diedit",
+        "primary_phone": "081299998888",
+        "group_name": "TEST-GROUP",
+        "notes": "Testing single row add",
+        "created_at": "20-10-2026 03:30:53",
+        "updated_at": "20-10-2026 03:31:27",
+        "status": "active"
+      },
+      "sync_status": "SYNCED",
+      "retry_count": 0,
+      "error_message": null,
+      "created_at": "20-10-2026 03:30:53",
+      "synced_at": "20-10-2026 03:30:53"
+    },
+    {
+      "sync_id": "SYNC-1792467053915-vpjgx",
+      "entity_type": "ALAMAT_PENGIRIMAN",
+      "entity_id": "ADDR-000001",
+      "operation": "CREATE",
+      "payload": {
+        "address_id": "ADDR-000001",
+        "customer_id": "TEST-VERIF-1792467053909-EDITED",
+        "address_label": "Kantor",
+        "recipient_name": "Verifikasi Non Double",
+        "recipient_phone": "081299998888",
+        "full_address": "Gedung Cyber 2 Lantai 15, Jl HR Rasuna Said",
+        "village": "",
+        "district": "",
+        "city": "Jakarta Selatan",
+        "province": "DKI Jakarta",
+        "postal_code": "",
+        "shipping_courier": "JNE",
+        "shipping_service": "Reguler",
+        "shipping_notes": "",
+        "group_name": "TEST-GROUP",
+        "created_at": "20-10-2026 03:30:53",
+        "updated_at": "20-10-2026 03:31:27",
+        "status": "active"
+      },
+      "sync_status": "SYNCED",
+      "retry_count": 0,
+      "error_message": null,
+      "created_at": "20-10-2026 03:30:53",
+      "synced_at": "20-10-2026 03:30:53"
+    },
+    {
+      "sync_id": "SYNC-1792467064733-bkbi4",
+      "entity_type": "ALAMAT_PENGIRIMAN",
+      "entity_id": "ADDR-000002",
+      "operation": "CREATE",
+      "payload": {
+        "address_id": "ADDR-000002",
+        "customer_id": "TEST-VERIF-1792467053909",
+        "address_label": "Gudang",
+        "recipient_name": "Penerima Gudang Diedit",
+        "recipient_phone": "081299998888",
+        "full_address": "Kawasan Industri Pulogadung Blok B",
+        "village": "",
+        "district": "",
+        "city": "Jakarta Timur",
+        "province": "DKI Jakarta",
+        "postal_code": "",
+        "shipping_courier": "SiCepat",
+        "shipping_service": "HALU",
+        "shipping_notes": "",
+        "group_name": "TEST-GROUP",
+        "created_at": "20-10-2026 03:31:04",
+        "updated_at": "20-10-2026 03:31:12",
+        "status": "active"
+      },
+      "sync_status": "SYNCED",
+      "retry_count": 0,
+      "error_message": null,
+      "created_at": "20-10-2026 03:31:04",
+      "synced_at": "20-10-2026 03:31:04"
+    },
+    {
+      "sync_id": "SYNC-1792467072241-xblim",
+      "entity_type": "ALAMAT_PENGIRIMAN",
+      "entity_id": "ADDR-000002",
+      "operation": "UPDATE",
+      "payload": {
+        "address_id": "ADDR-000002",
+        "customer_id": "TEST-VERIF-1792467053909",
+        "address_label": "Gudang",
+        "recipient_name": "Penerima Gudang Diedit",
+        "recipient_phone": "081299998888",
+        "full_address": "Kawasan Industri Pulogadung Blok B",
+        "village": "",
+        "district": "",
+        "city": "Jakarta Timur",
+        "province": "DKI Jakarta",
+        "postal_code": "",
+        "shipping_courier": "SiCepat",
+        "shipping_service": "HALU",
+        "shipping_notes": "",
+        "group_name": "TEST-GROUP",
+        "created_at": "20-10-2026 03:31:04",
+        "updated_at": "20-10-2026 03:31:12",
+        "status": "active"
+      },
+      "sync_status": "SYNCED",
+      "retry_count": 0,
+      "error_message": null,
+      "created_at": "20-10-2026 03:31:12",
+      "synced_at": "20-10-2026 03:31:12"
+    },
+    {
+      "sync_id": "SYNC-1792467078541-58qlz",
+      "entity_type": "ALAMAT_PENGIRIMAN",
+      "entity_id": "ADDR-000002",
+      "operation": "DELETE",
+      "payload": {
+        "address_id": "ADDR-000002"
+      },
+      "sync_status": "SYNCED",
+      "retry_count": 0,
+      "error_message": null,
+      "created_at": "20-10-2026 03:31:18",
+      "synced_at": "20-10-2026 03:31:18"
+    },
+    {
+      "sync_id": "SYNC-1792467087175-frdvq",
+      "entity_type": "ALAMAT_PENGIRIMAN",
+      "entity_id": "ADDR-000001",
+      "operation": "UPDATE",
+      "payload": {
+        "address_id": "ADDR-000001",
+        "customer_id": "TEST-VERIF-1792467053909-EDITED",
+        "address_label": "Kantor",
+        "recipient_name": "Verifikasi Non Double",
+        "recipient_phone": "081299998888",
+        "full_address": "Gedung Cyber 2 Lantai 15, Jl HR Rasuna Said",
+        "village": "",
+        "district": "",
+        "city": "Jakarta Selatan",
+        "province": "DKI Jakarta",
+        "postal_code": "",
+        "shipping_courier": "JNE",
+        "shipping_service": "Reguler",
+        "shipping_notes": "",
+        "group_name": "TEST-GROUP",
+        "created_at": "20-10-2026 03:30:53",
+        "updated_at": "20-10-2026 03:31:27",
+        "status": "active"
+      },
+      "sync_status": "SYNCED",
+      "retry_count": 0,
+      "error_message": null,
+      "created_at": "20-10-2026 03:31:27",
+      "synced_at": "20-10-2026 03:31:32"
+    },
+    {
+      "sync_id": "SYNC-1792467087178-8etwq",
+      "entity_type": "PELANGGAN",
+      "entity_id": "TEST-VERIF-1792467053909",
+      "operation": "DELETE",
+      "payload": {
+        "customer_id": "TEST-VERIF-1792467053909"
+      },
+      "sync_status": "SYNCED",
+      "retry_count": 0,
+      "error_message": null,
+      "created_at": "20-10-2026 03:31:27",
+      "synced_at": "20-10-2026 03:31:27"
+    },
+    {
+      "sync_id": "SYNC-1792467087182-3ufcd",
+      "entity_type": "PELANGGAN",
+      "entity_id": "TEST-VERIF-1792467053909-EDITED",
+      "operation": "UPDATE",
+      "payload": {
+        "customer_id": "TEST-VERIF-1792467053909-EDITED",
+        "customer_name": "Verifikasi Nama Diedit",
+        "primary_phone": "081299998888",
+        "group_name": "TEST-GROUP",
+        "notes": "Testing single row add",
+        "created_at": "20-10-2026 03:30:53",
+        "updated_at": "20-10-2026 03:31:27",
+        "status": "active"
+      },
+      "sync_status": "SYNCED",
+      "retry_count": 0,
+      "error_message": null,
+      "created_at": "20-10-2026 03:31:27",
+      "synced_at": "20-10-2026 03:31:29"
+    },
+    {
+      "sync_id": "SYNC-1792467098736-nau1g",
+      "entity_type": "ALAMAT_PENGIRIMAN",
+      "entity_id": "ADDR-000001",
+      "operation": "DELETE",
+      "payload": {
+        "address_id": "ADDR-000001"
+      },
+      "sync_status": "SYNCED",
+      "retry_count": 0,
+      "error_message": null,
+      "created_at": "20-10-2026 03:31:38",
+      "synced_at": "20-10-2026 04:02:36"
+    },
+    {
+      "sync_id": "SYNC-1792467098740-n8oqg",
+      "entity_type": "PELANGGAN",
+      "entity_id": "TEST-VERIF-1792467053909-EDITED",
+      "operation": "DELETE",
+      "payload": {
+        "customer_id": "TEST-VERIF-1792467053909-EDITED"
+      },
+      "sync_status": "SYNCED",
+      "retry_count": 0,
+      "error_message": null,
+      "created_at": "20-10-2026 03:31:38",
+      "synced_at": "20-10-2026 03:31:38"
+    },
+    {
+      "sync_id": "SYNC-1792469118563-yq7gb",
+      "entity_type": "PELANGGAN",
+      "entity_id": "CUST-DEL-1792469118559",
+      "operation": "CREATE",
+      "payload": {
+        "customer_id": "CUST-DEL-1792469118559",
+        "customer_name": "Uji Hapus Bersih",
+        "primary_phone": "08123456789",
+        "group_name": "TEST",
+        "notes": "",
+        "created_at": "20-10-2026 04:05:18",
+        "updated_at": "20-10-2026 04:05:18",
+        "status": "active"
+      },
+      "sync_status": "SYNCED",
+      "retry_count": 0,
+      "error_message": null,
+      "created_at": "20-10-2026 04:05:18",
+      "synced_at": "20-10-2026 04:05:18"
+    },
+    {
+      "sync_id": "SYNC-1792469118577-1s92u",
+      "entity_type": "ALAMAT_PENGIRIMAN",
+      "entity_id": "ADDR-000002",
+      "operation": "CREATE",
+      "payload": {
+        "address_id": "ADDR-000002",
+        "customer_id": "CUST-DEL-1792469118559",
+        "address_label": "Alamat 1",
+        "recipient_name": "Uji Penerima 1",
+        "recipient_phone": "08123456789",
+        "full_address": "Alamat Jalan Satu No 1",
+        "village": "",
+        "district": "",
+        "city": "Jakarta",
+        "province": "DKI Jakarta",
+        "postal_code": "",
+        "shipping_courier": "",
+        "shipping_service": "",
+        "shipping_notes": "",
+        "group_name": "TEST",
+        "created_at": "20-10-2026 04:05:18",
+        "updated_at": "20-10-2026 04:05:18",
+        "status": "active"
+      },
+      "sync_status": "SYNCED",
+      "retry_count": 0,
+      "error_message": null,
+      "created_at": "20-10-2026 04:05:18",
+      "synced_at": "20-10-2026 04:05:18"
+    },
+    {
+      "sync_id": "SYNC-1792469118588-p1x1j",
+      "entity_type": "ALAMAT_PENGIRIMAN",
+      "entity_id": "ADDR-000003",
+      "operation": "CREATE",
+      "payload": {
+        "address_id": "ADDR-000003",
+        "customer_id": "CUST-DEL-1792469118559",
+        "address_label": "Alamat 2",
+        "recipient_name": "Uji Penerima 2",
+        "recipient_phone": "08123456789",
+        "full_address": "Alamat Jalan Dua No 2",
+        "village": "",
+        "district": "",
+        "city": "Surabaya",
+        "province": "Jawa Timur",
+        "postal_code": "",
+        "shipping_courier": "",
+        "shipping_service": "",
+        "shipping_notes": "",
+        "group_name": "TEST",
+        "created_at": "20-10-2026 04:05:18",
+        "updated_at": "20-10-2026 04:05:18",
+        "status": "active"
+      },
+      "sync_status": "SYNCED",
+      "retry_count": 0,
+      "error_message": null,
+      "created_at": "20-10-2026 04:05:18",
+      "synced_at": "20-10-2026 04:06:34"
+    },
+    {
+      "sync_id": "SYNC-1792469203760-uothn",
+      "entity_type": "ALAMAT_PENGIRIMAN",
+      "entity_id": "ADDR-000003",
+      "operation": "DELETE",
+      "payload": {
+        "address_id": "ADDR-000003"
+      },
+      "sync_status": "SYNCED",
+      "retry_count": 0,
+      "error_message": null,
+      "created_at": "20-10-2026 04:06:43",
+      "synced_at": "20-10-2026 04:06:43"
+    },
+    {
+      "sync_id": "SYNC-1792469302866-t25ew",
+      "entity_type": "ALAMAT_PENGIRIMAN",
+      "entity_id": "ADDR-000002",
+      "operation": "DELETE",
+      "payload": {
+        "address_id": "ADDR-000002"
+      },
+      "sync_status": "SYNCED",
+      "retry_count": 0,
+      "error_message": null,
+      "created_at": "20-10-2026 04:08:22",
+      "synced_at": "20-10-2026 04:08:38"
+    },
+    {
+      "sync_id": "SYNC-1792469302873-udzcz",
+      "entity_type": "PELANGGAN",
+      "entity_id": "CUST-DEL-1792469118559",
+      "operation": "DELETE",
+      "payload": {
+        "customer_id": "CUST-DEL-1792469118559"
+      },
+      "sync_status": "SYNCED",
+      "retry_count": 0,
+      "error_message": null,
+      "created_at": "20-10-2026 04:08:22",
+      "synced_at": "20-10-2026 04:08:22"
+    },
+    {
+      "sync_id": "SYNC-1792548563523-a65um",
+      "entity_type": "PELANGGAN",
+      "entity_id": "CUST-TEST-99",
+      "operation": "CREATE",
+      "payload": {
+        "customer_id": "CUST-TEST-99",
+        "customer_name": "Budi Test Hapus",
+        "primary_phone": "081234567899",
+        "group_name": "TEST",
+        "notes": "Testing delete",
+        "created_at": "21-10-2026 02:09:23",
+        "updated_at": "21-10-2026 02:09:23",
+        "status": "active"
+      },
+      "sync_status": "SYNCED",
+      "retry_count": 0,
+      "error_message": null,
+      "created_at": "21-10-2026 02:09:23",
+      "synced_at": "21-10-2026 02:09:23"
+    },
+    {
+      "sync_id": "SYNC-1792548563529-ljp11",
+      "entity_type": "ALAMAT_PENGIRIMAN",
+      "entity_id": "ADDR-000001",
+      "operation": "CREATE",
+      "payload": {
+        "address_id": "ADDR-000001",
+        "customer_id": "CUST-TEST-99",
+        "address_label": "Kantor",
+        "recipient_name": "Budi Kantor",
+        "recipient_phone": "081234567899",
+        "full_address": "Jalan Kantor No 1",
+        "village": "",
+        "district": "",
+        "city": "Jakarta",
+        "province": "DKI Jakarta",
+        "postal_code": "",
+        "shipping_courier": "",
+        "shipping_service": "",
+        "shipping_notes": "",
+        "group_name": "TEST",
+        "created_at": "21-10-2026 02:09:23",
+        "updated_at": "21-10-2026 02:09:23",
+        "status": "active"
+      },
+      "sync_status": "SYNCED",
+      "retry_count": 0,
+      "error_message": null,
+      "created_at": "21-10-2026 02:09:23",
+      "synced_at": "21-10-2026 02:09:26"
+    },
+    {
+      "sync_id": "SYNC-1792548563534-nh2cq",
+      "entity_type": "ALAMAT_PENGIRIMAN",
+      "entity_id": "ADDR-000002",
+      "operation": "CREATE",
+      "payload": {
+        "address_id": "ADDR-000002",
+        "customer_id": "CUST-TEST-99",
+        "address_label": "Rumah",
+        "recipient_name": "Budi Rumah",
+        "recipient_phone": "081234567899",
+        "full_address": "Jalan Rumah No 2",
+        "village": "",
+        "district": "",
+        "city": "Surabaya",
+        "province": "Jawa Timur",
+        "postal_code": "",
+        "shipping_courier": "",
+        "shipping_service": "",
+        "shipping_notes": "",
+        "group_name": "TEST",
+        "created_at": "21-10-2026 02:09:23",
+        "updated_at": "21-10-2026 02:09:23",
+        "status": "active"
+      },
+      "sync_status": "SYNCED",
+      "retry_count": 0,
+      "error_message": null,
+      "created_at": "21-10-2026 02:09:23",
+      "synced_at": "21-10-2026 02:09:30"
+    },
+    {
+      "sync_id": "SYNC-1792548573446-u0gez",
+      "entity_type": "ALAMAT_PENGIRIMAN",
+      "entity_id": "ADDR-000001",
+      "operation": "DELETE",
+      "payload": {
+        "address_id": "ADDR-000001"
+      },
+      "sync_status": "SYNCED",
+      "retry_count": 0,
+      "error_message": null,
+      "created_at": "21-10-2026 02:09:33",
+      "synced_at": "21-10-2026 02:09:33"
+    },
+    {
+      "sync_id": "SYNC-1792548601710-l3gmm",
+      "entity_type": "ALAMAT_PENGIRIMAN",
+      "entity_id": "ADDR-000002",
+      "operation": "DELETE",
+      "payload": {
+        "address_id": "ADDR-000002"
+      },
+      "sync_status": "SYNCED",
+      "retry_count": 0,
+      "error_message": null,
+      "created_at": "21-10-2026 02:10:01",
+      "synced_at": "21-10-2026 02:15:06"
+    },
+    {
+      "sync_id": "SYNC-1792548601713-04yn6",
+      "entity_type": "PELANGGAN",
+      "entity_id": "CUST-TEST-99",
+      "operation": "DELETE",
+      "payload": {
+        "customer_id": "CUST-TEST-99"
+      },
+      "sync_status": "SYNCED",
+      "retry_count": 0,
+      "error_message": null,
+      "created_at": "21-10-2026 02:10:01",
+      "synced_at": "21-10-2026 02:10:01"
+    },
+    {
+      "sync_id": "SYNC-1792548901187-7l075",
+      "entity_type": "PELANGGAN",
+      "entity_id": "CUST-TEST-DEL-101",
+      "operation": "CREATE",
+      "payload": {
+        "customer_id": "CUST-TEST-DEL-101",
+        "customer_name": "Tes Hapus Komplit",
+        "primary_phone": "081299990001",
+        "group_name": "HERMES",
+        "notes": "Testing full delete",
+        "created_at": "21-10-2026 02:15:01",
+        "updated_at": "21-10-2026 02:15:01",
+        "status": "active"
+      },
+      "sync_status": "SYNCED",
+      "retry_count": 0,
+      "error_message": null,
+      "created_at": "21-10-2026 02:15:01",
+      "synced_at": "21-10-2026 02:15:01"
+    },
+    {
+      "sync_id": "SYNC-1792548901193-sshau",
+      "entity_type": "ALAMAT_PENGIRIMAN",
+      "entity_id": "ADDR-000001",
+      "operation": "CREATE",
+      "payload": {
+        "address_id": "ADDR-000001",
+        "customer_id": "CUST-TEST-DEL-101",
+        "address_label": "Alamat Kantor 1",
+        "recipient_name": "Penerima Kantor",
+        "recipient_phone": "081299990001",
+        "full_address": "Gedung Wisma Lt 5",
+        "village": "",
+        "district": "",
+        "city": "Jakarta Selatan",
+        "province": "DKI Jakarta",
+        "postal_code": "",
+        "shipping_courier": "",
+        "shipping_service": "",
+        "shipping_notes": "",
+        "group_name": "HERMES",
+        "created_at": "21-10-2026 02:15:01",
+        "updated_at": "21-10-2026 02:15:01",
+        "status": "active"
+      },
+      "sync_status": "SYNCED",
+      "retry_count": 0,
+      "error_message": null,
+      "created_at": "21-10-2026 02:15:01",
+      "synced_at": "21-10-2026 02:15:04"
+    },
+    {
+      "sync_id": "SYNC-1792548901200-zc9gl",
+      "entity_type": "ALAMAT_PENGIRIMAN",
+      "entity_id": "ADDR-000002",
+      "operation": "CREATE",
+      "payload": {
+        "address_id": "ADDR-000002",
+        "customer_id": "CUST-TEST-DEL-101",
+        "address_label": "Alamat Rumah 2",
+        "recipient_name": "Penerima Rumah",
+        "recipient_phone": "081299990002",
+        "full_address": "Perumahan Indah Blok C",
+        "village": "",
+        "district": "",
+        "city": "Bandung",
+        "province": "Jawa Barat",
+        "postal_code": "",
+        "shipping_courier": "",
+        "shipping_service": "",
+        "shipping_notes": "",
+        "group_name": "HERMES",
+        "created_at": "21-10-2026 02:15:01",
+        "updated_at": "21-10-2026 02:15:01",
+        "status": "active"
+      },
+      "sync_status": "SYNCED",
+      "retry_count": 0,
+      "error_message": null,
+      "created_at": "21-10-2026 02:15:01",
+      "synced_at": "21-10-2026 02:15:06"
+    },
+    {
+      "sync_id": "SYNC-1792548901207-qe7b2",
+      "entity_type": "ALAMAT_PENGIRIMAN",
+      "entity_id": "ADDR-000003",
+      "operation": "CREATE",
+      "payload": {
+        "address_id": "ADDR-000003",
+        "customer_id": "CUST-TEST-DEL-101",
+        "address_label": "Alamat Gudang 3",
+        "recipient_name": "Penerima Gudang",
+        "recipient_phone": "081299990003",
+        "full_address": "Kawasan Industri No 8",
+        "village": "",
+        "district": "",
+        "city": "Bekasi",
+        "province": "Jawa Barat",
+        "postal_code": "",
+        "shipping_courier": "",
+        "shipping_service": "",
+        "shipping_notes": "",
+        "group_name": "HERMES",
+        "created_at": "21-10-2026 02:15:01",
+        "updated_at": "21-10-2026 02:15:01",
+        "status": "active"
+      },
+      "sync_status": "SYNCED",
+      "retry_count": 0,
+      "error_message": null,
+      "created_at": "21-10-2026 02:15:01",
+      "synced_at": "21-10-2026 02:15:10"
+    },
+    {
+      "sync_id": "SYNC-1792548913333-kzxx3",
+      "entity_type": "ALAMAT_PENGIRIMAN",
+      "entity_id": "ADDR-000001",
+      "operation": "DELETE",
+      "payload": {
+        "address_id": "ADDR-000001"
+      },
+      "sync_status": "SYNCED",
+      "retry_count": 0,
+      "error_message": null,
+      "created_at": "21-10-2026 02:15:13",
+      "synced_at": "21-10-2026 02:15:13"
+    },
+    {
+      "sync_id": "SYNC-1792548933785-2ojbc",
+      "entity_type": "ALAMAT_PENGIRIMAN",
+      "entity_id": "ADDR-000003",
+      "operation": "DELETE",
+      "payload": {
+        "address_id": "ADDR-000003",
+        "customer_id": "CUST-TEST-DEL-101"
+      },
+      "sync_status": "SYNCED",
+      "retry_count": 0,
+      "error_message": null,
+      "created_at": "21-10-2026 02:15:33",
+      "synced_at": "21-10-2026 02:15:33"
+    },
+    {
+      "sync_id": "SYNC-1792548933788-fzqjd",
+      "entity_type": "ALAMAT_PENGIRIMAN",
+      "entity_id": "ADDR-000002",
+      "operation": "DELETE",
+      "payload": {
+        "address_id": "ADDR-000002",
+        "customer_id": "CUST-TEST-DEL-101"
+      },
+      "sync_status": "SYNCED",
+      "retry_count": 0,
+      "error_message": null,
+      "created_at": "21-10-2026 02:15:33",
+      "synced_at": "21-10-2026 02:15:33"
+    },
+    {
+      "sync_id": "SYNC-1792548933793-htd3n",
+      "entity_type": "PELANGGAN",
+      "entity_id": "CUST-TEST-DEL-101",
+      "operation": "DELETE",
+      "payload": {
+        "customer_id": "CUST-TEST-DEL-101"
+      },
+      "sync_status": "SYNCED",
+      "retry_count": 0,
+      "error_message": null,
+      "created_at": "21-10-2026 02:15:33",
+      "synced_at": "21-10-2026 02:15:33"
     }
   ],
   "activity_logs": [
+    {
+      "log_id": "LOG-1792548933792-725",
+      "action_type": "HAPUS_PELANGGAN",
+      "description": "Pelanggan dihapus permanen: Tes Hapus Komplit (CUST-TEST-DEL-101) dan seluruh alamat pengiriman terkait dihapus",
+      "entity_id": "CUST-TEST-DEL-101",
+      "timestamp": "21-10-2026 02:15:33"
+    },
+    {
+      "log_id": "LOG-1792548913333-714",
+      "action_type": "HAPUS_ALAMAT",
+      "description": "Alamat dihapus permanen: Alamat Kantor 1 (ADDR-000001) dari pelanggan CUST-TEST-DEL-101 dan baris spreadsheet dihapus",
+      "entity_id": "ADDR-000001",
+      "timestamp": "21-10-2026 02:15:13"
+    },
+    {
+      "log_id": "LOG-1792548901207-934",
+      "action_type": "TAMBAH_ALAMAT",
+      "description": "Alamat baru \"Alamat Gudang 3\" (Penerima Gudang) [Grup: HERMES] ditambahkan untuk Tes Hapus Komplit (CUST-TEST-DEL-101)",
+      "entity_id": "ADDR-000003",
+      "timestamp": "21-10-2026 02:15:01"
+    },
+    {
+      "log_id": "LOG-1792548901200-347",
+      "action_type": "TAMBAH_ALAMAT",
+      "description": "Alamat baru \"Alamat Rumah 2\" (Penerima Rumah) [Grup: HERMES] ditambahkan untuk Tes Hapus Komplit (CUST-TEST-DEL-101)",
+      "entity_id": "ADDR-000002",
+      "timestamp": "21-10-2026 02:15:01"
+    },
+    {
+      "log_id": "LOG-1792548901193-983",
+      "action_type": "TAMBAH_ALAMAT",
+      "description": "Alamat baru \"Alamat Kantor 1\" (Penerima Kantor) [Grup: HERMES] ditambahkan untuk Tes Hapus Komplit (CUST-TEST-DEL-101)",
+      "entity_id": "ADDR-000001",
+      "timestamp": "21-10-2026 02:15:01"
+    },
+    {
+      "log_id": "LOG-1792548901187-886",
+      "action_type": "TAMBAH_PELANGGAN",
+      "description": "Pelanggan baru ditambahkan: Tes Hapus Komplit (CUST-TEST-DEL-101) [Grup: HERMES]",
+      "entity_id": "CUST-TEST-DEL-101",
+      "timestamp": "21-10-2026 02:15:01"
+    },
+    {
+      "log_id": "LOG-1792548601713-56",
+      "action_type": "HAPUS_PELANGGAN",
+      "description": "Pelanggan dihapus permanen: Budi Test Hapus (CUST-TEST-99) dan baris di spreadsheet dihapus",
+      "entity_id": "CUST-TEST-99",
+      "timestamp": "21-10-2026 02:10:01"
+    },
+    {
+      "log_id": "LOG-1792548573446-225",
+      "action_type": "HAPUS_ALAMAT",
+      "description": "Alamat dihapus permanen: Kantor (ADDR-000001) dari pelanggan CUST-TEST-99 dan baris spreadsheet dihapus",
+      "entity_id": "ADDR-000001",
+      "timestamp": "21-10-2026 02:09:33"
+    },
+    {
+      "log_id": "LOG-1792548563534-291",
+      "action_type": "TAMBAH_ALAMAT",
+      "description": "Alamat baru \"Rumah\" (Budi Rumah) [Grup: TEST] ditambahkan untuk Budi Test Hapus (CUST-TEST-99)",
+      "entity_id": "ADDR-000002",
+      "timestamp": "21-10-2026 02:09:23"
+    },
+    {
+      "log_id": "LOG-1792548563529-134",
+      "action_type": "TAMBAH_ALAMAT",
+      "description": "Alamat baru \"Kantor\" (Budi Kantor) [Grup: TEST] ditambahkan untuk Budi Test Hapus (CUST-TEST-99)",
+      "entity_id": "ADDR-000001",
+      "timestamp": "21-10-2026 02:09:23"
+    },
+    {
+      "log_id": "LOG-1792548563523-543",
+      "action_type": "TAMBAH_PELANGGAN",
+      "description": "Pelanggan baru ditambahkan: Budi Test Hapus (CUST-TEST-99) [Grup: TEST]",
+      "entity_id": "CUST-TEST-99",
+      "timestamp": "21-10-2026 02:09:23"
+    },
+    {
+      "log_id": "LOG-1792548195166-383",
+      "action_type": "SINKRONISASI",
+      "description": "Sinkronisasi data dari Google Spreadsheet berhasil diterapkan (37 pelanggan, 37 alamat, 45 jasa kirim)",
+      "timestamp": "21-10-2026 02:03:15"
+    },
+    {
+      "log_id": "LOG-1792469319093-133",
+      "action_type": "SINKRONISASI",
+      "description": "Sinkronisasi data dari Google Spreadsheet berhasil diterapkan (37 pelanggan, 39 alamat, 45 jasa kirim)",
+      "timestamp": "20-10-2026 04:08:39"
+    },
+    {
+      "log_id": "LOG-1792469302873-296",
+      "action_type": "HAPUS_PELANGGAN",
+      "description": "Pelanggan dihapus permanen: Uji Hapus Bersih (CUST-DEL-1792469118559) dan baris di spreadsheet dihapus",
+      "entity_id": "CUST-DEL-1792469118559",
+      "timestamp": "20-10-2026 04:08:22"
+    },
+    {
+      "log_id": "LOG-1792469203760-903",
+      "action_type": "HAPUS_ALAMAT",
+      "description": "Alamat dihapus permanen: Alamat 2 (ADDR-000003) dari pelanggan CUST-DEL-1792469118559 dan baris spreadsheet dihapus",
+      "entity_id": "ADDR-000003",
+      "timestamp": "20-10-2026 04:06:43"
+    },
+    {
+      "log_id": "LOG-1792469118588-320",
+      "action_type": "TAMBAH_ALAMAT",
+      "description": "Alamat baru \"Alamat 2\" (Uji Penerima 2) [Grup: TEST] ditambahkan untuk Uji Hapus Bersih (CUST-DEL-1792469118559)",
+      "entity_id": "ADDR-000003",
+      "timestamp": "20-10-2026 04:05:18"
+    },
+    {
+      "log_id": "LOG-1792469118577-376",
+      "action_type": "TAMBAH_ALAMAT",
+      "description": "Alamat baru \"Alamat 1\" (Uji Penerima 1) [Grup: TEST] ditambahkan untuk Uji Hapus Bersih (CUST-DEL-1792469118559)",
+      "entity_id": "ADDR-000002",
+      "timestamp": "20-10-2026 04:05:18"
+    },
+    {
+      "log_id": "LOG-1792469118562-141",
+      "action_type": "TAMBAH_PELANGGAN",
+      "description": "Pelanggan baru ditambahkan: Uji Hapus Bersih (CUST-DEL-1792469118559) [Grup: TEST]",
+      "entity_id": "CUST-DEL-1792469118559",
+      "timestamp": "20-10-2026 04:05:18"
+    },
+    {
+      "log_id": "LOG-1792468958577-215",
+      "action_type": "SINKRONISASI",
+      "description": "Sinkronisasi data dari Google Spreadsheet berhasil diterapkan (37 pelanggan, 38 alamat, 45 jasa kirim)",
+      "timestamp": "20-10-2026 04:02:38"
+    },
+    {
+      "log_id": "LOG-1792467098740-230",
+      "action_type": "HAPUS_PELANGGAN",
+      "description": "Pelanggan dihapus permanen: Verifikasi Nama Diedit (TEST-VERIF-1792467053909-EDITED) dan baris di spreadsheet dihapus",
+      "entity_id": "TEST-VERIF-1792467053909-EDITED",
+      "timestamp": "20-10-2026 03:31:38"
+    },
+    {
+      "log_id": "LOG-1792467087182-237",
+      "action_type": "EDIT_PELANGGAN",
+      "description": "Data pelanggan diperbarui: Verifikasi Nama Diedit (TEST-VERIF-1792467053909-EDITED) [Grup: TEST-GROUP]",
+      "entity_id": "TEST-VERIF-1792467053909-EDITED",
+      "timestamp": "20-10-2026 03:31:27"
+    },
+    {
+      "log_id": "LOG-1792467078541-701",
+      "action_type": "HAPUS_ALAMAT",
+      "description": "Alamat dihapus permanen: Gudang (ADDR-000002) dari pelanggan TEST-VERIF-1792467053909 dan baris spreadsheet dihapus",
+      "entity_id": "ADDR-000002",
+      "timestamp": "20-10-2026 03:31:18"
+    },
+    {
+      "log_id": "LOG-1792467072241-491",
+      "action_type": "EDIT_ALAMAT",
+      "description": "Alamat \"Gudang\" (Penerima Gudang Diedit) diperbarui untuk pelanggan TEST-VERIF-1792467053909",
+      "entity_id": "ADDR-000002",
+      "timestamp": "20-10-2026 03:31:12"
+    },
+    {
+      "log_id": "LOG-1792467064733-402",
+      "action_type": "TAMBAH_ALAMAT",
+      "description": "Alamat baru \"Gudang\" (Verifikasi Gudang) [Grup: TEST-GROUP] ditambahkan untuk Verifikasi Non Double (TEST-VERIF-1792467053909)",
+      "entity_id": "ADDR-000002",
+      "timestamp": "20-10-2026 03:31:04"
+    },
+    {
+      "log_id": "LOG-1792467053915-916",
+      "action_type": "TAMBAH_ALAMAT",
+      "description": "Alamat baru \"Kantor\" (Verifikasi Non Double) [Grup: TEST-GROUP] ditambahkan untuk Verifikasi Non Double (TEST-VERIF-1792467053909)",
+      "entity_id": "ADDR-000001",
+      "timestamp": "20-10-2026 03:30:53"
+    },
+    {
+      "log_id": "LOG-1792467053909-632",
+      "action_type": "TAMBAH_PELANGGAN",
+      "description": "Pelanggan baru ditambahkan: Verifikasi Non Double (TEST-VERIF-1792467053909) [Grup: TEST-GROUP]",
+      "entity_id": "TEST-VERIF-1792467053909",
+      "timestamp": "20-10-2026 03:30:53"
+    },
+    {
+      "log_id": "LOG-1792466080093-80",
+      "action_type": "SINKRONISASI",
+      "description": "Sinkronisasi data dari Google Spreadsheet berhasil diterapkan (37 pelanggan, 37 alamat, 45 jasa kirim)",
+      "timestamp": "20-10-2026 03:14:40"
+    },
+    {
+      "log_id": "LOG-1792384689719-385",
+      "action_type": "HAPUS_PELANGGAN",
+      "description": "Pelanggan dihapus permanen: Budi Santoso E2E (YX-TEST-SYNC1) dan baris di spreadsheet dihapus",
+      "entity_id": "YX-TEST-SYNC1",
+      "timestamp": "19-10-2026 04:38:09"
+    },
+    {
+      "log_id": "LOG-1792384665689-598",
+      "action_type": "HAPUS_ALAMAT",
+      "description": "Alamat dihapus permanen: Alamat Rumah (ADDR-000001) dari pelanggan YX-TEST-SYNC1 dan baris spreadsheet dihapus",
+      "entity_id": "ADDR-000001",
+      "timestamp": "19-10-2026 04:37:45"
+    },
+    {
+      "log_id": "LOG-1792384660554-549",
+      "action_type": "TAMBAH_ALAMAT",
+      "description": "Alamat baru \"Alamat Kantor\" (Budi Kantor) ditambahkan untuk Budi Santoso E2E (YX-TEST-SYNC1)",
+      "entity_id": "ADDR-000002",
+      "timestamp": "19-10-2026 04:37:40"
+    },
+    {
+      "log_id": "LOG-1792384653453-280",
+      "action_type": "TAMBAH_ALAMAT",
+      "description": "Alamat baru \"Alamat Rumah\" (Budi Santoso E2E) ditambahkan untuk Budi Santoso E2E (YX-TEST-SYNC1)",
+      "entity_id": "ADDR-000001",
+      "timestamp": "19-10-2026 04:37:33"
+    },
+    {
+      "log_id": "LOG-1792384653447-433",
+      "action_type": "TAMBAH_PELANGGAN",
+      "description": "Pelanggan baru ditambahkan: Budi Santoso E2E (YX-TEST-SYNC1)",
+      "entity_id": "YX-TEST-SYNC1",
+      "timestamp": "19-10-2026 04:37:33"
+    },
+    {
+      "log_id": "LOG-1792384345740-839",
+      "action_type": "HAPUS_PELANGGAN",
+      "description": "Pelanggan dihapus permanen: Test Scenario User (TEST-SCENARIO-1) dan baris di spreadsheet dihapus",
+      "entity_id": "TEST-SCENARIO-1",
+      "timestamp": "19-10-2026 04:32:25"
+    },
+    {
+      "log_id": "LOG-1792384345730-662",
+      "action_type": "HAPUS_ALAMAT",
+      "description": "Alamat dihapus permanen: Alamat Rumah (ADDR-000001) dari pelanggan TEST-SCENARIO-1 dan baris spreadsheet dihapus",
+      "entity_id": "ADDR-000001",
+      "timestamp": "19-10-2026 04:32:25"
+    },
+    {
+      "log_id": "LOG-1792384345714-968",
+      "action_type": "TAMBAH_ALAMAT",
+      "description": "Alamat baru \"Alamat Kantor\" (Test Scenario User) ditambahkan untuk Test Scenario User (TEST-SCENARIO-1)",
+      "entity_id": "ADDR-000002",
+      "timestamp": "19-10-2026 04:32:25"
+    },
+    {
+      "log_id": "LOG-1792384345703-264",
+      "action_type": "TAMBAH_ALAMAT",
+      "description": "Alamat baru \"Alamat Rumah\" (Test Scenario User) ditambahkan untuk Test Scenario User (TEST-SCENARIO-1)",
+      "entity_id": "ADDR-000001",
+      "timestamp": "19-10-2026 04:32:25"
+    },
+    {
+      "log_id": "LOG-1792384345692-868",
+      "action_type": "TAMBAH_PELANGGAN",
+      "description": "Pelanggan baru ditambahkan: Test Scenario User (TEST-SCENARIO-1)",
+      "entity_id": "TEST-SCENARIO-1",
+      "timestamp": "19-10-2026 04:32:25"
+    },
+    {
+      "log_id": "LOG-1792383534623-649",
+      "action_type": "SINKRONISASI",
+      "description": "Sinkronisasi data dari Google Spreadsheet berhasil diterapkan (37 pelanggan, 37 alamat, 45 jasa kirim)",
+      "timestamp": "19-10-2026 04:18:54"
+    },
+    {
+      "log_id": "LOG-1792374482791-894",
+      "action_type": "SINKRONISASI",
+      "description": "Sinkronisasi data dari Google Spreadsheet berhasil diterapkan (37 pelanggan, 37 alamat, 45 jasa kirim)",
+      "timestamp": "19-10-2026 01:48:02"
+    },
     {
       "log_id": "LOG-1792300281313-480",
       "action_type": "HAPUS_PELANGGAN",
@@ -7668,7 +8829,8 @@
   "address_groups": [
     "HERMES",
     "DIAMOND",
-    "CHANEL"
+    "CHANEL",
+    "TEST"
   ],
   "apps_script_url": "https://script.google.com/macros/s/AKfycbymST6-L81TVqQ1XHvf2pi68pllwjut4BQtidADPi-jIaoEDf45HsIEBCxMkMrf7DwV5w/exec",
   "spreadsheet_id": "1Q0xxgKTDv4AhSQKt2mJdqnuxm1U3AuWAHJ89ArlHx-Q"

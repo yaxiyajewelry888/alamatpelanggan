@@ -231,11 +231,8 @@ apiRouter.post('/customers', async (req: Request, res: Response) => {
       });
     }
 
-    // Direct synchronous push to Google Spreadsheet so data is immediately present in spreadsheet
-    await syncService.syncCustomerToSpreadsheet(newCustomer);
-    if (createdAddress) {
-      await syncService.syncAddressToSpreadsheet(createdAddress);
-    }
+    // Direct atomic push to Google Spreadsheet: marks queue tasks SYNCED up front and syncs without race condition
+    await syncService.syncCustomerAndAddress(newCustomer, createdAddress);
 
     res.status(201).json({
       success: true,
@@ -256,7 +253,16 @@ apiRouter.put('/customers/:id', async (req: Request, res: Response) => {
     const updated = db.updateCustomer(id, { customer_id, customer_name, primary_phone, group_name, notes, status });
     
     // Direct sync to Google Spreadsheet: row is immediately updated
-    await syncService.syncCustomerToSpreadsheet(updated);
+    if (customer_id && customer_id.trim() !== id) {
+      await syncService.deleteCustomerFromSpreadsheet(id);
+      await syncService.syncCustomerToSpreadsheet(updated);
+      const customerAddrs = db.getAddresses(updated.customer_id);
+      for (const a of customerAddrs) {
+        await syncService.syncAddressToSpreadsheet(a);
+      }
+    } else {
+      await syncService.syncCustomerToSpreadsheet(updated);
+    }
 
     res.json({ success: true, data: updated });
   } catch (err: any) {
@@ -283,6 +289,20 @@ apiRouter.delete('/customers/:id', async (req: Request, res: Response) => {
     // Directly delete row from Google Spreadsheet & purge completely
     await syncService.deleteCustomerFromSpreadsheet(id);
 
+    res.json({ success: true, data: result });
+  } catch (err: any) {
+    res.status(400).json({ success: false, error: err.message });
+  }
+});
+
+apiRouter.post('/customers/bulk-delete', async (req: Request, res: Response) => {
+  try {
+    const { customer_ids } = req.body;
+    if (!Array.isArray(customer_ids) || customer_ids.length === 0) {
+      return res.status(400).json({ success: false, error: 'Daftar ID pelanggan terpilih kosong.' });
+    }
+    const result = db.deleteCustomersBulk(customer_ids);
+    await syncService.deleteCustomersBulkFromSpreadsheet(customer_ids);
     res.json({ success: true, data: result });
   } catch (err: any) {
     res.status(400).json({ success: false, error: err.message });
@@ -502,6 +522,20 @@ apiRouter.delete('/addresses/:id', async (req: Request, res: Response) => {
     const id = req.params.id;
     const result = db.deleteAddress(id);
     await syncService.deleteAddressFromSpreadsheet(id);
+    res.json({ success: true, data: result });
+  } catch (err: any) {
+    res.status(400).json({ success: false, error: err.message });
+  }
+});
+
+apiRouter.post('/addresses/bulk-delete', async (req: Request, res: Response) => {
+  try {
+    const { address_ids } = req.body;
+    if (!Array.isArray(address_ids) || address_ids.length === 0) {
+      return res.status(400).json({ success: false, error: 'Daftar ID alamat terpilih kosong.' });
+    }
+    const result = db.deleteAddressesBulk(address_ids);
+    await syncService.deleteAddressesBulkFromSpreadsheet(address_ids);
     res.json({ success: true, data: result });
   } catch (err: any) {
     res.status(400).json({ success: false, error: err.message });

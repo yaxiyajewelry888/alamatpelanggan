@@ -156,6 +156,10 @@ export default function App() {
     if (!data.success) {
       throw new Error(data.error || 'Gagal menyimpan pelanggan');
     }
+    // If customer ID changed during edit and detail modal is showing the old ID, update it!
+    if (isEdit && customerData.customer_id && customerToEdit && detailCustomerId === customerToEdit.customer_id) {
+      setDetailCustomerId(customerData.customer_id.trim());
+    }
     reloadData();
   };
 
@@ -175,6 +179,47 @@ export default function App() {
       },
       onArchive: async () => {
         await fetch(`/api/customers/${customer.customer_id}/archive`, { method: 'PATCH' });
+        setDeleteModalState(prev => ({ ...prev, isOpen: false }));
+        reloadData();
+      }
+    });
+  };
+
+  const handleDeleteCustomersBulkPrompt = (customerIds: string[]) => {
+    if (!customerIds || customerIds.length === 0) return;
+    const selectedList = allCustomers.filter(c => customerIds.includes(c.customer_id));
+    const names = selectedList.map(c => `${c.customer_name} (${c.customer_id})`).slice(0, 5).join(', ');
+    const moreText = selectedList.length > 5 ? ` dan ${selectedList.length - 5} lainnya` : '';
+    setDeleteModalState({
+      isOpen: true,
+      title: 'Hapus Pelanggan Terpilih',
+      message: `Apakah Anda yakin ingin menghapus permanen ${customerIds.length} pelanggan terpilih? Hanya data pelanggan yang dipilih (${names}${moreText}) beserta seluruh alamat terkait yang akan dihapus permanen.`,
+      itemName: `${customerIds.length} pelanggan terpilih`,
+      onDelete: async () => {
+        await fetch('/api/customers/bulk-delete', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ customer_ids: customerIds })
+        });
+        setDeleteModalState(prev => ({ ...prev, isOpen: false }));
+        reloadData();
+      }
+    });
+  };
+
+  const handleDeleteAddressesBulkPrompt = (addressIds: string[]) => {
+    if (!addressIds || addressIds.length === 0) return;
+    setDeleteModalState({
+      isOpen: true,
+      title: 'Hapus Alamat Terpilih',
+      message: `Apakah Anda yakin ingin menghapus permanen ${addressIds.length} alamat pengiriman terpilih? Hanya alamat yang dipilih yang akan dihapus, data pelanggan utama dan alamat lainnya tetap aman.`,
+      itemName: `${addressIds.length} alamat terpilih`,
+      onDelete: async () => {
+        await fetch('/api/addresses/bulk-delete', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ address_ids: addressIds })
+        });
         setDeleteModalState(prev => ({ ...prev, isOpen: false }));
         reloadData();
       }
@@ -422,6 +467,7 @@ export default function App() {
               onOpenPrintAddresses={(addrs, cust, mode) => handleOpenPrintAddresses(addrs, cust, mode)}
               onDeleteCustomer={handleDeleteCustomerPrompt}
               onDeleteAddress={handleDeleteAddressPrompt}
+              onDeleteCustomersBulk={handleDeleteCustomersBulkPrompt}
               allCouriers={allCouriers}
               storeSettings={storeSettings}
               refreshTrigger={refreshTrigger}
@@ -507,6 +553,7 @@ export default function App() {
         onOpenEditCustomer={handleOpenEditCustomer}
         onOpenPrintAddresses={handleOpenPrintAddresses}
         onDeleteAddress={handleDeleteAddressPrompt}
+        onDeleteAddressesBulk={handleDeleteAddressesBulkPrompt}
         refreshTrigger={refreshTrigger}
       />
 

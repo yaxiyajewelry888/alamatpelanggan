@@ -53,6 +53,7 @@ interface CustomerListViewProps {
   onOpenPrintAddresses?: (addresses: Address[], customer?: Customer, mode?: 'single_per_sheet' | 'mixed_bulk') => void;
   onDeleteCustomer: (customer: Customer) => void;
   onDeleteAddress?: (address: Address) => void;
+  onDeleteCustomersBulk?: (customerIds: string[]) => void;
   allCouriers: Courier[];
   storeSettings?: StoreSettings;
   refreshTrigger: number;
@@ -69,6 +70,7 @@ export const CustomerListView: React.FC<CustomerListViewProps> = ({
   onOpenPrintAddresses,
   onDeleteCustomer,
   onDeleteAddress,
+  onDeleteCustomersBulk,
   allCouriers,
   storeSettings,
   refreshTrigger
@@ -87,8 +89,59 @@ export const CustomerListView: React.FC<CustomerListViewProps> = ({
   const [totalPages, setTotalPages] = useState(1);
   const [isLoading, setIsLoading] = useState(false);
 
+  // Selected customer IDs for bulk actions (print & delete selected)
+  const [selectedCustomerIds, setSelectedCustomerIds] = useState<Set<string>>(new Set());
+
   // Expanded customer rows for quick multi-address management
   const [expandedCustomerIds, setExpandedCustomerIds] = useState<Set<string>>(new Set());
+
+  const toggleSelectCustomer = (id: string) => {
+    setSelectedCustomerIds(prev => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  };
+
+  const toggleSelectAllVisible = () => {
+    setSelectedCustomerIds(prev => {
+      const allVisibleSelected = customers.length > 0 && customers.every(c => prev.has(c.customer_id));
+      if (allVisibleSelected) {
+        return new Set();
+      } else {
+        const next = new Set(prev);
+        customers.forEach(c => next.add(c.customer_id));
+        return next;
+      }
+    });
+  };
+
+  const handlePrintSelectedCustomers = () => {
+    if (selectedCustomerIds.size === 0) return;
+    const selectedList = customers.filter(c => selectedCustomerIds.has(c.customer_id));
+    const allAddrs: Address[] = [];
+    for (const c of selectedList) {
+      if (c.addresses && c.addresses.length > 0) {
+        allAddrs.push(...c.addresses.filter(a => a.status !== 'deleted'));
+      }
+    }
+    if (allAddrs.length === 0) {
+      alert('Pelanggan terpilih belum memiliki alamat pengiriman.');
+      return;
+    }
+    if (onOpenPrintAddresses) {
+      onOpenPrintAddresses(allAddrs, undefined, 'mixed_bulk');
+    }
+  };
+
+  const handleDeleteSelectedCustomers = () => {
+    if (selectedCustomerIds.size === 0) return;
+    if (onDeleteCustomersBulk) {
+      onDeleteCustomersBulk(Array.from(selectedCustomerIds));
+      setSelectedCustomerIds(new Set());
+    }
+  };
 
   // Bulk Print Modal state
   const [isBulkPrintOpen, setIsBulkPrintOpen] = useState(false);
@@ -360,13 +413,71 @@ export const CustomerListView: React.FC<CustomerListViewProps> = ({
         </div>
       </div>
 
+      {/* Floating / Sticky Selected Customers Action Bar */}
+      {selectedCustomerIds.size > 0 && (
+        <div className="bg-gradient-to-r from-pink-50 to-pink-100/70 border border-pink-200/90 rounded-2xl p-3.5 mb-4 shadow-sm flex flex-wrap items-center justify-between gap-3 animate-in fade-in slide-in-from-top-2 duration-150">
+          <div className="flex items-center gap-2.5">
+            <span className="w-7 h-7 rounded-lg bg-pink-600 text-white flex items-center justify-center text-xs font-black shadow-xs">
+              ✓
+            </span>
+            <div>
+              <span className="text-xs font-bold text-slate-900">
+                {selectedCustomerIds.size} Pelanggan Dipilih
+              </span>
+              <p className="text-[11px] text-slate-500">
+                Aksi di bawah ini hanya berlaku untuk ID pelanggan yang dicentang
+              </p>
+            </div>
+          </div>
+          <div className="flex flex-wrap items-center gap-2">
+            <button
+              type="button"
+              onClick={() => setSelectedCustomerIds(new Set())}
+              className="px-3 py-1.5 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 text-xs font-semibold transition-colors"
+            >
+              Batal Pilih
+            </button>
+            <button
+              type="button"
+              onClick={handlePrintSelectedCustomers}
+              className="px-3 py-1.5 rounded-xl bg-pink-600 hover:bg-pink-700 text-white text-xs font-bold flex items-center gap-1.5 shadow-xs transition-colors"
+            >
+              <Printer className="w-3.5 h-3.5" />
+              <span>Cetak Label Terpilih ({selectedCustomerIds.size})</span>
+            </button>
+            {onDeleteCustomersBulk && (
+              <button
+                type="button"
+                onClick={handleDeleteSelectedCustomers}
+                className="px-3 py-1.5 rounded-xl bg-rose-600 hover:bg-rose-700 text-white text-xs font-bold flex items-center gap-1.5 shadow-xs transition-colors"
+                title="Hapus permanen hanya pelanggan yang dicentang beserta alamatnya"
+              >
+                <Trash2 className="w-3.5 h-3.5" />
+                <span>Hapus Terpilih ({selectedCustomerIds.size})</span>
+              </button>
+            )}
+          </div>
+        </div>
+      )}
+
       {/* Customers Table */}
       <div className="bg-white rounded-2xl border border-slate-200 shadow-xs overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full text-left border-collapse text-xs">
             <thead>
               <tr className="border-b border-slate-200 bg-slate-50/75 text-slate-600 font-bold tracking-wider uppercase text-[11px]">
-                <th className="py-3.5 px-3 w-8 text-center"></th>
+                <th className="py-3.5 px-3 w-16 text-center">
+                  <div className="flex items-center justify-center gap-1.5">
+                    <input
+                      type="checkbox"
+                      aria-label="Pilih semua pelanggan di halaman ini"
+                      title="Pilih semua pelanggan yang tampil"
+                      checked={customers.length > 0 && customers.every(c => selectedCustomerIds.has(c.customer_id))}
+                      onChange={toggleSelectAllVisible}
+                      className="w-4 h-4 rounded border-slate-300 text-pink-600 focus:ring-pink-500 cursor-pointer"
+                    />
+                  </div>
+                </th>
                 <th className="py-3.5 px-4">ID Pelanggan</th>
                 <th className="py-3.5 px-4">Nama Pelanggan</th>
                 <th className="py-3.5 px-4">No. Telepon</th>
@@ -394,26 +505,36 @@ export const CustomerListView: React.FC<CustomerListViewProps> = ({
                   const addresses = customer.addresses || [];
                   const addressCount = customer.address_count ?? addresses.length;
                   const isExpanded = expandedCustomerIds.has(customer.customer_id);
+                  const isChecked = selectedCustomerIds.has(customer.customer_id);
 
                   return (
                     <React.Fragment key={customer.customer_id}>
                       <tr 
-                        className={`hover:bg-pink-50/20 transition-colors group ${isExpanded ? 'bg-pink-50/15' : ''}`}
+                        className={`hover:bg-pink-50/20 transition-colors group ${isChecked ? 'bg-pink-50/30' : isExpanded ? 'bg-pink-50/15' : ''}`}
                       >
-                        {/* Expand / Collapse Button */}
+                        {/* Checkbox & Expand Button */}
                         <td className="py-3.5 pl-3 pr-1 text-center">
-                          <button
-                            type="button"
-                            onClick={() => toggleExpandCustomer(customer.customer_id)}
-                            title={isExpanded ? 'Tutup daftar alamat' : 'Lihat & edit alamat pelanggan ini'}
-                            className="p-1 rounded-md text-slate-400 hover:text-pink-600 hover:bg-pink-50 transition-colors"
-                          >
-                            {isExpanded ? (
-                              <ChevronUp className="w-4 h-4 text-pink-600" />
-                            ) : (
-                              <ChevronDown className="w-4 h-4" />
-                            )}
-                          </button>
+                          <div className="flex items-center justify-center gap-1.5">
+                            <input
+                              type="checkbox"
+                              aria-label={`Pilih ${customer.customer_name}`}
+                              checked={isChecked}
+                              onChange={() => toggleSelectCustomer(customer.customer_id)}
+                              className="w-4 h-4 rounded border-slate-300 text-pink-600 focus:ring-pink-500 cursor-pointer"
+                            />
+                            <button
+                              type="button"
+                              onClick={() => toggleExpandCustomer(customer.customer_id)}
+                              title={isExpanded ? 'Tutup daftar alamat' : 'Lihat & edit alamat pelanggan ini'}
+                              className="p-1 rounded-md text-slate-400 hover:text-pink-600 hover:bg-pink-50 transition-colors"
+                            >
+                              {isExpanded ? (
+                                <ChevronUp className="w-3.5 h-3.5 text-pink-600" />
+                              ) : (
+                                <ChevronDown className="w-3.5 h-3.5" />
+                              )}
+                            </button>
+                          </div>
                         </td>
 
                         {/* ID Pelanggan */}

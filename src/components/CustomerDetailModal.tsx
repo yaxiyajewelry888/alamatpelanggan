@@ -25,6 +25,7 @@ interface CustomerDetailModalProps {
   onOpenEditCustomer: (customer: Customer) => void;
   onOpenPrintAddresses: (addresses: Address[], customer: Customer) => void;
   onDeleteAddress: (address: Address) => void;
+  onDeleteAddressesBulk?: (addressIds: string[]) => void;
   refreshTrigger: number;
 }
 
@@ -37,6 +38,7 @@ export const CustomerDetailModal: React.FC<CustomerDetailModalProps> = ({
   onOpenEditCustomer,
   onOpenPrintAddresses,
   onDeleteAddress,
+  onDeleteAddressesBulk,
   refreshTrigger
 }) => {
   const [customer, setCustomer] = useState<Customer | null>(null);
@@ -54,8 +56,8 @@ export const CustomerDetailModal: React.FC<CustomerDetailModalProps> = ({
             setCustomer(data.data);
             const addrs = data.data.addresses || [];
             setAddresses(addrs);
-            // Default select all active addresses
-            setSelectedAddressIds(addrs.filter((a: Address) => a.status !== 'deleted').map((a: Address) => a.address_id));
+            // Do not auto-select all addresses by default so user only actions what they explicitly check
+            setSelectedAddressIds([]);
           }
         })
         .catch(err => console.error('Error fetching customer detail:', err))
@@ -101,6 +103,14 @@ export const CustomerDetailModal: React.FC<CustomerDetailModalProps> = ({
   const handlePrintSingle = (address: Address) => {
     if (!customer) return;
     onOpenPrintAddresses([address], customer);
+  };
+
+  const handleDeleteSelected = () => {
+    if (selectedAddressIds.length === 0) return;
+    if (onDeleteAddressesBulk) {
+      onDeleteAddressesBulk(selectedAddressIds);
+      setSelectedAddressIds([]);
+    }
   };
 
   return (
@@ -229,6 +239,16 @@ export const CustomerDetailModal: React.FC<CustomerDetailModalProps> = ({
                       <Printer className="w-3.5 h-3.5" />
                       <span>Cetak Terpilih ({selectedAddressIds.length})</span>
                     </button>
+                    {selectedAddressIds.length > 0 && onDeleteAddressesBulk && (
+                      <button
+                        onClick={handleDeleteSelected}
+                        className="px-3 py-1.5 rounded-xl border border-rose-200 bg-rose-50 hover:bg-rose-100 text-rose-700 text-xs font-bold shadow-xs flex items-center gap-1.5 transition-colors"
+                        title="Hapus permanen hanya alamat yang dicentang"
+                      >
+                        <Trash2 className="w-3.5 h-3.5 text-rose-600" />
+                        <span>Hapus Terpilih ({selectedAddressIds.length})</span>
+                      </button>
+                    )}
                     <button
                       onClick={handlePrintAll}
                       disabled={addresses.length === 0}

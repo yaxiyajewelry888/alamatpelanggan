@@ -17,11 +17,6 @@ class SyncService {
     if (this.isStarted) return;
     this.isStarted = true;
     console.log('[SyncService] Background automatic event-driven sync service running...');
-
-    // Subscribe to DB real-time change events for instant push when data changes from system
-    db.onSyncNeeded(() => {
-      this.triggerSync();
-    });
     
     // Initial automatic pull from Google Spreadsheet immediately on startup (150ms)
     // to load initial data without manual push/pull
@@ -190,18 +185,16 @@ class SyncService {
           for (const task of tasks) {
             if (task.retry_count >= 5) continue;
             if (task.operation === 'DELETE') hasDeleteOp = true;
+            // Mark task as SYNCED immediately so concurrent or debounced queue triggers never pick it up twice
+            db.updateSyncTask(task.sync_id, 'SYNCED', null);
             try {
               await this.syncTaskToAppsScript(appsScriptUrl, task);
-              db.updateSyncTask(task.sync_id, 'SYNCED', null);
               totalProcessed++;
             } catch (taskErr: any) {
               totalErrors++;
               db.updateSyncTask(task.sync_id, 'FAILED', taskErr.message);
             }
           }
-
-          // If any delete operation was performed, do a clean sweep via pushFullDatabaseToSpreadsheet
-          // to ensure old rows are completely wiped out even if Apps Script deployment is older
           if (hasDeleteOp) {
             await this.pushFullDatabaseToSpreadsheet().catch(() => {});
           }
@@ -210,9 +203,9 @@ class SyncService {
             await googleSheetsClient.ensureSheetsInitialized();
             for (const task of tasks) {
               if (task.retry_count >= 5) continue;
+              db.updateSyncTask(task.sync_id, 'SYNCED', null);
               try {
                 await this.syncSingleTask(task);
-                db.updateSyncTask(task.sync_id, 'SYNCED', null);
                 totalProcessed++;
               } catch (err: any) {
                 totalErrors++;
@@ -271,6 +264,14 @@ class SyncService {
   }
 
   public async syncCustomerToSpreadsheet(customer: Customer): Promise<void> {
+    // 1. Mark pending task for this customer as SYNCED FIRST before fetch so queue doesn't duplicate
+    const tasks = db.getPendingSyncTasks();
+    for (const t of tasks) {
+      if (t.entity_type === 'PELANGGAN' && t.entity_id === customer.customer_id) {
+        db.updateSyncTask(t.sync_id, 'SYNCED', null);
+      }
+    }
+
     const appsScriptUrl = db.getAppsScriptUrl();
     if (appsScriptUrl) {
       try {
@@ -286,10 +287,62 @@ class SyncService {
         console.warn('[SyncService] saveCustomer error:', e.message);
       }
     }
-    await this.processQueue();
+  }
+
+  public async syncCustomerAndAddress(customer: Customer, address?: Address | null): Promise<void> {
+    // 1. Immediately mark both pending tasks as SYNCED before doing any network calls
+    // so background queue triggers NEVER pick them up and send duplicates
+    const tasks = db.getPendingSyncTasks();
+    for (const t of tasks) {
+      if ((t.entity_type === 'PELANGGAN' && t.entity_id === customer.customer_id) ||
+          (address && t.entity_type === 'ALAMAT_PENGIRIMAN' && t.entity_id === address.address_id)) {
+        db.updateSyncTask(t.sync_id, 'SYNCED', null);
+      }
+    }
+
+    const appsScriptUrl = db.getAppsScriptUrl();
+    if (appsScriptUrl) {
+      try {
+        const cust = { ...customer };
+        cust.group_name = cust.group_name && cust.group_name.trim() ? cust.group_name.trim() : '-';
+        await fetch(appsScriptUrl, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ action: 'saveCustomer', customer: cust }),
+          redirect: 'follow'
+        });
+      } catch (e: any) {
+        console.warn('[SyncService] saveCustomer error:', e.message);
+      }
+
+      if (address) {
+        try {
+          const addr = { ...address };
+          addr.group_name = addr.group_name && addr.group_name.trim() ? addr.group_name.trim() : '-';
+          await fetch(appsScriptUrl, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ action: 'saveAddress', address: addr }),
+            redirect: 'follow'
+          });
+        } catch (e: any) {
+          console.warn('[SyncService] saveAddress error:', e.message);
+        }
+      }
+    }
   }
 
   public async deleteCustomerFromSpreadsheet(customerId: string): Promise<void> {
+    const idUpper = customerId.trim().toUpperCase();
+    // 1. Mark pending tasks for this customer and ALL their shipping addresses as SYNCED FIRST
+    const tasks = db.getPendingSyncTasks();
+    for (const t of tasks) {
+      if ((t.entity_type === 'PELANGGAN' && t.entity_id.trim().toUpperCase() === idUpper) ||
+          (t.entity_type === 'ALAMAT_PENGIRIMAN' && t.payload?.customer_id && String(t.payload.customer_id).trim().toUpperCase() === idUpper)) {
+        db.updateSyncTask(t.sync_id, 'SYNCED', null);
+      }
+    }
+
     const appsScriptUrl = db.getAppsScriptUrl();
     if (appsScriptUrl) {
       try {
@@ -302,20 +355,54 @@ class SyncService {
       } catch (e: any) {
         console.warn('[SyncService] deleteCustomer call warning:', e.message);
       }
-      // Ensure the row is completely wiped from spreadsheet
-      await this.pushFullDatabaseToSpreadsheet();
+      // Guarantee complete physical removal of this customer and all their addresses from Google Spreadsheet
+      await this.pushFullDatabaseToSpreadsheet().catch(() => {});
     }
-    // Mark pending tasks for this entity as SYNCED
+  }
+
+  public async deleteCustomersBulkFromSpreadsheet(customerIds: string[]): Promise<void> {
+    if (!customerIds || customerIds.length === 0) return;
+    const idSet = new Set(customerIds.map(x => x.trim().toUpperCase()));
+    // Mark pending tasks for these entities and their shipping addresses as SYNCED FIRST
     const tasks = db.getPendingSyncTasks();
     for (const t of tasks) {
-      if ((t.entity_type === 'PELANGGAN' && t.entity_id === customerId) ||
-          (t.entity_type === 'ALAMAT_PENGIRIMAN' && t.payload?.customer_id === customerId)) {
+      if (t.entity_type === 'PELANGGAN' && idSet.has(t.entity_id.trim().toUpperCase())) {
         db.updateSyncTask(t.sync_id, 'SYNCED', null);
+      } else if (t.entity_type === 'ALAMAT_PENGIRIMAN') {
+        const payloadCid = t.payload?.customer_id ? String(t.payload.customer_id).trim().toUpperCase() : '';
+        if (payloadCid && idSet.has(payloadCid)) {
+          db.updateSyncTask(t.sync_id, 'SYNCED', null);
+        }
       }
+    }
+
+    const appsScriptUrl = db.getAppsScriptUrl();
+    if (appsScriptUrl) {
+      try {
+        await fetch(appsScriptUrl, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ action: 'bulkDeleteCustomers', customer_ids: customerIds }),
+          redirect: 'follow'
+        });
+      } catch (e: any) {
+        console.warn('[SyncService] bulkDeleteCustomers call warning:', e.message);
+      }
+      // Guarantee complete physical removal of these customers and their addresses from Google Spreadsheet
+      await this.pushFullDatabaseToSpreadsheet().catch(() => {});
     }
   }
 
   public async syncAddressToSpreadsheet(address: Address): Promise<void> {
+    const idUpper = address.address_id.trim().toUpperCase();
+    // 1. Mark pending task for this address as SYNCED FIRST
+    const tasks = db.getPendingSyncTasks();
+    for (const t of tasks) {
+      if (t.entity_type === 'ALAMAT_PENGIRIMAN' && t.entity_id.trim().toUpperCase() === idUpper) {
+        db.updateSyncTask(t.sync_id, 'SYNCED', null);
+      }
+    }
+
     const appsScriptUrl = db.getAppsScriptUrl();
     if (appsScriptUrl) {
       try {
@@ -331,10 +418,18 @@ class SyncService {
         console.warn('[SyncService] saveAddress error:', e.message);
       }
     }
-    await this.processQueue();
   }
 
   public async deleteAddressFromSpreadsheet(addressId: string): Promise<void> {
+    const idUpper = addressId.trim().toUpperCase();
+    // 1. Mark pending tasks for this address as SYNCED FIRST
+    const tasks = db.getPendingSyncTasks();
+    for (const t of tasks) {
+      if (t.entity_type === 'ALAMAT_PENGIRIMAN' && t.entity_id.trim().toUpperCase() === idUpper) {
+        db.updateSyncTask(t.sync_id, 'SYNCED', null);
+      }
+    }
+
     const appsScriptUrl = db.getAppsScriptUrl();
     if (appsScriptUrl) {
       try {
@@ -347,13 +442,36 @@ class SyncService {
       } catch (e: any) {
         console.warn('[SyncService] deleteAddress call warning:', e.message);
       }
-      await this.pushFullDatabaseToSpreadsheet();
+      // Guarantee complete physical removal of this address from Google Spreadsheet
+      await this.pushFullDatabaseToSpreadsheet().catch(() => {});
     }
+  }
+
+  public async deleteAddressesBulkFromSpreadsheet(addressIds: string[]): Promise<void> {
+    if (!addressIds || addressIds.length === 0) return;
+    const idSet = new Set(addressIds.map(x => x.trim().toUpperCase()));
+    // 1. Mark pending tasks for these addresses as SYNCED FIRST
     const tasks = db.getPendingSyncTasks();
     for (const t of tasks) {
-      if (t.entity_type === 'ALAMAT_PENGIRIMAN' && t.entity_id === addressId) {
+      if (t.entity_type === 'ALAMAT_PENGIRIMAN' && idSet.has(t.entity_id.trim().toUpperCase())) {
         db.updateSyncTask(t.sync_id, 'SYNCED', null);
       }
+    }
+
+    const appsScriptUrl = db.getAppsScriptUrl();
+    if (appsScriptUrl) {
+      try {
+        await fetch(appsScriptUrl, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ action: 'bulkDeleteAddresses', address_ids: addressIds }),
+          redirect: 'follow'
+        });
+      } catch (e: any) {
+        console.warn('[SyncService] bulkDeleteAddresses call warning:', e.message);
+      }
+      // Guarantee complete physical removal of these addresses from Google Spreadsheet
+      await this.pushFullDatabaseToSpreadsheet().catch(() => {});
     }
   }
 
