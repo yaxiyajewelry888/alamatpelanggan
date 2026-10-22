@@ -286,8 +286,8 @@ apiRouter.delete('/customers/:id', async (req: Request, res: Response) => {
     const id = req.params.id;
     const result = db.deleteCustomer(id);
 
-    // Directly delete row from Google Spreadsheet & purge completely
-    await syncService.deleteCustomerFromSpreadsheet(id);
+    // Directly delete row from Google Spreadsheet in background
+    syncService.deleteCustomerFromSpreadsheet(id).catch(e => console.warn('[Route] deleteCustomer sync warning:', e.message));
 
     res.json({ success: true, data: result });
   } catch (err: any) {
@@ -302,7 +302,7 @@ apiRouter.post('/customers/bulk-delete', async (req: Request, res: Response) => 
       return res.status(400).json({ success: false, error: 'Daftar ID pelanggan terpilih kosong.' });
     }
     const result = db.deleteCustomersBulk(customer_ids);
-    await syncService.deleteCustomersBulkFromSpreadsheet(customer_ids);
+    syncService.deleteCustomersBulkFromSpreadsheet(customer_ids).catch(e => console.warn('[Route] bulkDeleteCustomers sync warning:', e.message));
     res.json({ success: true, data: result });
   } catch (err: any) {
     res.status(400).json({ success: false, error: err.message });
@@ -521,7 +521,7 @@ apiRouter.delete('/addresses/:id', async (req: Request, res: Response) => {
   try {
     const id = req.params.id;
     const result = db.deleteAddress(id);
-    await syncService.deleteAddressFromSpreadsheet(id);
+    syncService.deleteAddressFromSpreadsheet(id).catch(e => console.warn('[Route] deleteAddress sync warning:', e.message));
     res.json({ success: true, data: result });
   } catch (err: any) {
     res.status(400).json({ success: false, error: err.message });
@@ -535,7 +535,7 @@ apiRouter.post('/addresses/bulk-delete', async (req: Request, res: Response) => 
       return res.status(400).json({ success: false, error: 'Daftar ID alamat terpilih kosong.' });
     }
     const result = db.deleteAddressesBulk(address_ids);
-    await syncService.deleteAddressesBulkFromSpreadsheet(address_ids);
+    syncService.deleteAddressesBulkFromSpreadsheet(address_ids).catch(e => console.warn('[Route] bulkDeleteAddresses sync warning:', e.message));
     res.json({ success: true, data: result });
   } catch (err: any) {
     res.status(400).json({ success: false, error: err.message });
@@ -592,7 +592,7 @@ apiRouter.delete('/couriers/:id', async (req: Request, res: Response) => {
   try {
     const id = req.params.id;
     const result = db.deleteCourier(id);
-    await syncService.deleteCourierFromSpreadsheet(id);
+    syncService.deleteCourierFromSpreadsheet(id).catch(e => console.warn('[Route] deleteCourier sync warning:', e.message));
     res.json({ success: true, data: result });
   } catch (err: any) {
     res.status(400).json({ success: false, error: err.message });

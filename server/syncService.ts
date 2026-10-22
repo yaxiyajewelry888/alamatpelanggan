@@ -120,6 +120,31 @@ class SyncService {
         }
       }
 
+      // Auto-reconcile missing customers from remote addresses so customers are never lost
+      if (Array.isArray(remoteData.addresses)) {
+        if (!Array.isArray(remoteData.customers)) {
+          remoteData.customers = [];
+        }
+        const remoteCustMap = new Set(remoteData.customers.map((c: any) => String(c.customer_id).trim().toUpperCase()));
+        for (const addr of remoteData.addresses) {
+          if (!addr || !addr.customer_id || addr.status === 'deleted') continue;
+          const cidUpper = String(addr.customer_id).trim().toUpperCase();
+          if (!remoteCustMap.has(cidUpper)) {
+            remoteData.customers.push({
+              customer_id: String(addr.customer_id).trim(),
+              customer_name: (addr.recipient_name || `Pelanggan ${addr.customer_id}`).trim(),
+              primary_phone: (addr.recipient_phone || '').trim(),
+              group_name: (addr.group_name || '').trim(),
+              notes: (addr.shipping_notes || '').trim(),
+              created_at: addr.created_at || '',
+              updated_at: addr.updated_at || '',
+              status: 'active'
+            });
+            remoteCustMap.add(cidUpper);
+          }
+        }
+      }
+
       // Merge remote customers without overwriting pending local edits
       if (Array.isArray(remoteData.customers)) {
         for (const localPendingCustId of pendingCustIds) {
@@ -355,8 +380,6 @@ class SyncService {
       } catch (e: any) {
         console.warn('[SyncService] deleteCustomer call warning:', e.message);
       }
-      // Guarantee complete physical removal of this customer and all their addresses from Google Spreadsheet
-      await this.pushFullDatabaseToSpreadsheet().catch(() => {});
     }
   }
 
@@ -388,8 +411,6 @@ class SyncService {
       } catch (e: any) {
         console.warn('[SyncService] bulkDeleteCustomers call warning:', e.message);
       }
-      // Guarantee complete physical removal of these customers and their addresses from Google Spreadsheet
-      await this.pushFullDatabaseToSpreadsheet().catch(() => {});
     }
   }
 
@@ -442,8 +463,6 @@ class SyncService {
       } catch (e: any) {
         console.warn('[SyncService] deleteAddress call warning:', e.message);
       }
-      // Guarantee complete physical removal of this address from Google Spreadsheet
-      await this.pushFullDatabaseToSpreadsheet().catch(() => {});
     }
   }
 
@@ -470,8 +489,6 @@ class SyncService {
       } catch (e: any) {
         console.warn('[SyncService] bulkDeleteAddresses call warning:', e.message);
       }
-      // Guarantee complete physical removal of these addresses from Google Spreadsheet
-      await this.pushFullDatabaseToSpreadsheet().catch(() => {});
     }
   }
 
@@ -485,10 +502,10 @@ class SyncService {
           body: JSON.stringify({ action: 'saveCourier', courier }),
           redirect: 'follow'
         });
-      } catch {}
-      await this.pushFullDatabaseToSpreadsheet().catch(() => {});
+      } catch (e: any) {
+        console.warn('[SyncService] saveCourier error:', e.message);
+      }
     }
-    await this.processQueue();
   }
 
   public async deleteCourierFromSpreadsheet(courierId: string): Promise<void> {
@@ -501,8 +518,9 @@ class SyncService {
           body: JSON.stringify({ action: 'deleteCourier', courier_id: courierId }),
           redirect: 'follow'
         });
-      } catch {}
-      await this.pushFullDatabaseToSpreadsheet().catch(() => {});
+      } catch (e: any) {
+        console.warn('[SyncService] deleteCourier error:', e.message);
+      }
     }
     const tasks = db.getPendingSyncTasks();
     for (const t of tasks) {

@@ -338,7 +338,41 @@ class DatabaseEngine {
   }
 
   // --- CUSTOMER METHODS ---
+  public reconcileCustomersFromAddresses(): number {
+    const existingMap = new Map<string, Customer>();
+    for (const c of this.data.customers) {
+      if (c && c.customer_id) {
+        existingMap.set(c.customer_id.trim().toUpperCase(), c);
+      }
+    }
+    let restoredCount = 0;
+    for (const a of this.data.addresses) {
+      if (!a.customer_id || a.status === 'deleted') continue;
+      const cidUpper = a.customer_id.trim().toUpperCase();
+      if (!existingMap.has(cidUpper)) {
+        const newCust: Customer = {
+          customer_id: a.customer_id.trim(),
+          customer_name: (a.recipient_name || `Pelanggan ${a.customer_id}`).trim(),
+          primary_phone: (a.recipient_phone || '').trim(),
+          group_name: (a.group_name || '').trim(),
+          notes: (a.shipping_notes || '').trim(),
+          created_at: a.created_at || getCurrentDateFormatted(),
+          updated_at: a.updated_at || getCurrentDateFormatted(),
+          status: 'active'
+        };
+        this.data.customers.push(newCust);
+        existingMap.set(cidUpper, newCust);
+        restoredCount++;
+      }
+    }
+    if (restoredCount > 0) {
+      this.save();
+    }
+    return restoredCount;
+  }
+
   public getCustomers(includeArchived = false): Customer[] {
+    this.reconcileCustomersFromAddresses();
     return this.data.customers.filter(c => {
       if (c.status === 'deleted') return false;
       if (!includeArchived && c.status === 'archived') return false;
@@ -347,7 +381,12 @@ class DatabaseEngine {
   }
 
   public getCustomerById(id: string): Customer | undefined {
-    return this.data.customers.find(c => c.customer_id === id && c.status !== 'deleted');
+    let cust = this.data.customers.find(c => c.customer_id === id && c.status !== 'deleted');
+    if (!cust) {
+      this.reconcileCustomersFromAddresses();
+      cust = this.data.customers.find(c => c.customer_id === id && c.status !== 'deleted');
+    }
+    return cust;
   }
 
   public generateNextCustomerId(): string {
@@ -1086,6 +1125,17 @@ class DatabaseEngine {
           group_name: grp
         });
       }
+
+      // Preserve any active local customers that were not in remote payload
+      for (const existingCust of this.data.customers) {
+        if (!existingCust || existingCust.status === 'deleted') continue;
+        const existUpper = existingCust.customer_id.trim().toUpperCase();
+        if (!seenCustIds.has(existUpper)) {
+          uniqueCustomers.push(existingCust);
+          seenCustIds.add(existUpper);
+        }
+      }
+
       this.data.customers = uniqueCustomers;
     }
 
@@ -1125,6 +1175,7 @@ class DatabaseEngine {
     if (payload.settings && typeof payload.settings === 'object') {
       this.data.settings = { ...this.getSettings(), ...payload.settings };
     }
+    this.reconcileCustomersFromAddresses();
     this.logActivity('SINKRONISASI', `Sinkronisasi data dari Google Spreadsheet berhasil diterapkan (${this.data.customers.length} pelanggan, ${this.data.addresses.length} alamat, ${this.data.couriers.length} jasa kirim)`);
     this.save();
     return {

@@ -195,17 +195,25 @@ export default function App() {
       message: `Apakah Anda yakin ingin menghapus pelanggan ${customer.customer_name} (${customer.customer_id})? Data alamat terkait juga akan dinonaktifkan. Anda dapat memilih untuk mengarsipkan agar data tetap dapat dipulihkan.`,
       itemName: `${customer.customer_name} (${customer.customer_id})`,
       onDelete: async () => {
-        await fetch(`/api/customers/${customer.customer_id}`, { method: 'DELETE' });
+        // Optimistic UI update: instantly remove customer from view
+        setAllCustomers(prev => prev.filter(c => c.customer_id !== customer.customer_id));
         setDeleteModalState(prev => ({ ...prev, isOpen: false }));
         if (detailCustomerId === customer.customer_id) {
           setIsCustomerDetailModalOpen(false);
         }
-        reloadData();
+        try {
+          await fetch(`/api/customers/${customer.customer_id}`, { method: 'DELETE' });
+        } finally {
+          reloadData();
+        }
       },
       onArchive: async () => {
-        await fetch(`/api/customers/${customer.customer_id}/archive`, { method: 'PATCH' });
         setDeleteModalState(prev => ({ ...prev, isOpen: false }));
-        reloadData();
+        try {
+          await fetch(`/api/customers/${customer.customer_id}/archive`, { method: 'PATCH' });
+        } finally {
+          reloadData();
+        }
       }
     });
   };
@@ -221,13 +229,19 @@ export default function App() {
       message: `Apakah Anda yakin ingin menghapus permanen ${customerIds.length} pelanggan terpilih? Hanya data pelanggan yang dipilih (${names}${moreText}) beserta seluruh alamat terkait yang akan dihapus permanen.`,
       itemName: `${customerIds.length} pelanggan terpilih`,
       onDelete: async () => {
-        await fetch('/api/customers/bulk-delete', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ customer_ids: customerIds })
-        });
+        // Optimistic UI update: instantly remove selected customers
+        const idSet = new Set(customerIds);
+        setAllCustomers(prev => prev.filter(c => !idSet.has(c.customer_id)));
         setDeleteModalState(prev => ({ ...prev, isOpen: false }));
-        reloadData();
+        try {
+          await fetch('/api/customers/bulk-delete', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ customer_ids: customerIds })
+          });
+        } finally {
+          reloadData();
+        }
       }
     });
   };
@@ -240,13 +254,16 @@ export default function App() {
       message: `Apakah Anda yakin ingin menghapus permanen ${addressIds.length} alamat pengiriman terpilih? Hanya alamat yang dipilih yang akan dihapus, data pelanggan utama dan alamat lainnya tetap aman.`,
       itemName: `${addressIds.length} alamat terpilih`,
       onDelete: async () => {
-        await fetch('/api/addresses/bulk-delete', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ address_ids: addressIds })
-        });
         setDeleteModalState(prev => ({ ...prev, isOpen: false }));
-        reloadData();
+        try {
+          await fetch('/api/addresses/bulk-delete', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ address_ids: addressIds })
+          });
+        } finally {
+          reloadData();
+        }
       }
     });
   };
@@ -294,14 +311,20 @@ export default function App() {
       message: `Hapus alamat "${address.address_label}" (${address.recipient_name})? Menghapus alamat ini tidak akan menghapus data pelanggan utama.`,
       itemName: `${address.address_label} - ${address.recipient_name}`,
       onDelete: async () => {
-        await fetch(`/api/addresses/${address.address_id}`, { method: 'DELETE' });
         setDeleteModalState(prev => ({ ...prev, isOpen: false }));
-        reloadData();
+        try {
+          await fetch(`/api/addresses/${address.address_id}`, { method: 'DELETE' });
+        } finally {
+          reloadData();
+        }
       },
       onArchive: async () => {
-        await fetch(`/api/addresses/${address.address_id}/archive`, { method: 'PATCH' });
         setDeleteModalState(prev => ({ ...prev, isOpen: false }));
-        reloadData();
+        try {
+          await fetch(`/api/addresses/${address.address_id}/archive`, { method: 'PATCH' });
+        } finally {
+          reloadData();
+        }
       }
     });
   };
@@ -400,12 +423,17 @@ export default function App() {
     setDeleteModalState({
       isOpen: true,
       title: 'Hapus Jasa Kirim',
-      message: `Hapus jasa kirim "${courier.courier_name}" (${courier.courier_id})? Data di Google Spreadsheet juga akan diperbarui.`,
+      message: `Hapus jasa kirim "${courier.courier_name}" (${courier.courier_id})? Data di Google Spreadsheet juga akan diperbarui. Hanya jasa kirim ini yang akan dihapus, seluruh data pelanggan dan alamat 100% aman.`,
       itemName: `${courier.courier_name} (${courier.courier_id})`,
       onDelete: async () => {
-        await fetch(`/api/couriers/${courier.courier_id}`, { method: 'DELETE' });
+        // Optimistic UI update: remove instantly from view
+        setAllCouriers(prev => prev.filter(c => c.courier_id !== courier.courier_id));
         setDeleteModalState(prev => ({ ...prev, isOpen: false }));
-        reloadData();
+        try {
+          await fetch(`/api/couriers/${courier.courier_id}`, { method: 'DELETE' });
+        } finally {
+          reloadData();
+        }
       }
     });
   };

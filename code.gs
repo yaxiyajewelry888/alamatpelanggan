@@ -319,6 +319,9 @@ function saveAllDataToSheets(data) {
     var custSheet = ss.getSheetByName(SHEET_CONFIG.PELANGGAN.name);
     if (!custSheet) custSheet = ss.insertSheet(SHEET_CONFIG.PELANGGAN.name);
     custSheet.clearContents();
+    try {
+      custSheet.getRange(2, 1, Math.max(custSheet.getMaxRows() - 1, 1), custSheet.getMaxColumns()).clearDataValidations();
+    } catch (valErr) {}
     custSheet.getRange(1, 1, 1, SHEET_CONFIG.PELANGGAN.headers.length).setValues([SHEET_CONFIG.PELANGGAN.headers]);
     formatHeaderRow(custSheet, SHEET_CONFIG.PELANGGAN.headers.length, SHEET_CONFIG.PELANGGAN.color);
 
@@ -336,8 +339,20 @@ function saveAllDataToSheets(data) {
           c.status || 'active'
         ];
       });
-      custSheet.getRange(2, 1, custRows.length, SHEET_CONFIG.PELANGGAN.headers.length).setValues(custRows);
-      stats.customers = custRows.length;
+      try {
+        custSheet.getRange(2, 1, custRows.length, SHEET_CONFIG.PELANGGAN.headers.length).setValues(custRows);
+        stats.customers = custRows.length;
+      } catch (setErr) {
+        // Fallback: clear validations on target range and write safely
+        for (var r = 0; r < custRows.length; r++) {
+          try {
+            var targetRow = custSheet.getRange(r + 2, 1, 1, SHEET_CONFIG.PELANGGAN.headers.length);
+            targetRow.clearDataValidations();
+            targetRow.setValues([custRows[r]]);
+            stats.customers++;
+          } catch (rowErr) {}
+        }
+      }
     }
   }
 
@@ -346,6 +361,9 @@ function saveAllDataToSheets(data) {
     var addrSheet = ss.getSheetByName(SHEET_CONFIG.ALAMAT_PENGIRIMAN.name);
     if (!addrSheet) addrSheet = ss.insertSheet(SHEET_CONFIG.ALAMAT_PENGIRIMAN.name);
     addrSheet.clearContents();
+    try {
+      addrSheet.getRange(2, 1, Math.max(addrSheet.getMaxRows() - 1, 1), addrSheet.getMaxColumns()).clearDataValidations();
+    } catch (valErr) {}
     addrSheet.getRange(1, 1, 1, SHEET_CONFIG.ALAMAT_PENGIRIMAN.headers.length).setValues([SHEET_CONFIG.ALAMAT_PENGIRIMAN.headers]);
     formatHeaderRow(addrSheet, SHEET_CONFIG.ALAMAT_PENGIRIMAN.headers.length, SHEET_CONFIG.ALAMAT_PENGIRIMAN.color);
 
@@ -373,8 +391,19 @@ function saveAllDataToSheets(data) {
           a.status || 'active'
         ];
       });
-      addrSheet.getRange(2, 1, addrRows.length, SHEET_CONFIG.ALAMAT_PENGIRIMAN.headers.length).setValues(addrRows);
-      stats.addresses = addrRows.length;
+      try {
+        addrSheet.getRange(2, 1, addrRows.length, SHEET_CONFIG.ALAMAT_PENGIRIMAN.headers.length).setValues(addrRows);
+        stats.addresses = addrRows.length;
+      } catch (setAddrErr) {
+        for (var ra = 0; ra < addrRows.length; ra++) {
+          try {
+            var targetAddrRow = addrSheet.getRange(ra + 2, 1, 1, SHEET_CONFIG.ALAMAT_PENGIRIMAN.headers.length);
+            targetAddrRow.clearDataValidations();
+            targetAddrRow.setValues([addrRows[ra]]);
+            stats.addresses++;
+          } catch (rErr) {}
+        }
+      }
     }
   }
 
