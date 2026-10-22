@@ -704,14 +704,12 @@ apiRouter.get('/print-page', (req: Request, res: Response) => {
             <!-- HEADER ATAS: PENGIRIM (Logo di kiri, Detail di sampingnya. DROPSHIP = LOGO OTOMATIS HILANG) -->
             <div style="display: flex; align-items: center; justify-content: space-between; border-bottom: 2.5px solid #000; padding-bottom: 3mm; gap: 3mm;">
               <div style="display: flex; align-items: center; gap: 3mm; min-width: 0;">
-                ${!isDropship && settings.show_logo_on_print ? `
-                  <div style="flex-shrink: 0;">
-                    ${settings.logo_mode === 'custom' && settings.custom_logo_url ? `
-                      <img src="${settings.custom_logo_url}" style="max-height: 12mm; max-width: 25mm; object-fit: contain;" />
+                ${!isDropship && settings.show_logo_on_print && settings.logo_mode !== 'none' ? `
+                  <div style="flex-shrink: 0; display: flex; align-items: center;">
+                    ${(settings.logo_mode === 'custom' || settings.custom_logo_url) && settings.custom_logo_url ? `
+                      <img src="${settings.custom_logo_url}" alt="Logo Toko" style="max-height: 12mm; max-width: 25mm; object-fit: contain; display: block;" onerror="this.style.display='none'" />
                     ` : `
-                      <div style="display: inline-flex; align-items: center; justify-content: center; width: 12mm; height: 12mm; border: 1.5px solid #000; font-weight: 900; font-size: 8pt; border-radius: 2px;">
-                        YX
-                      </div>
+                      <img src="/assets/aistudio/LOGO_YAXIYA_Pink_-_Copy_c18e8ec2.png" alt="Yaxiya Jewelry" style="max-height: 12mm; max-width: 25mm; object-fit: contain; display: block;" />
                     `}
                   </div>
                 ` : ''}
@@ -781,8 +779,14 @@ apiRouter.get('/print-page', (req: Request, res: Response) => {
             <!-- HEADER ATAS: PENGIRIM -->
             <div style="display: flex; align-items: center; justify-content: space-between; border-bottom: 1.5px solid #000; padding-bottom: 1.5mm;">
               <div style="display: flex; align-items: center; gap: 2.5mm;">
-                ${!isDropship && settings.show_logo_on_print ? `
-                  <div style="font-weight: 900; font-size: 8pt; border: 1px solid #000; padding: 1px 3px;">YX</div>
+                ${!isDropship && settings.show_logo_on_print && settings.logo_mode !== 'none' ? `
+                  <div style="flex-shrink: 0; display: inline-flex; align-items: center;">
+                    ${(settings.logo_mode === 'custom' || settings.custom_logo_url) && settings.custom_logo_url ? `
+                      <img src="${settings.custom_logo_url}" alt="Logo Toko" style="max-height: 9mm; max-width: 22mm; object-fit: contain; display: block;" onerror="this.style.display='none'" />
+                    ` : `
+                      <img src="/assets/aistudio/LOGO_YAXIYA_Pink_-_Copy_c18e8ec2.png" alt="Yaxiya Jewelry" style="max-height: 9mm; max-width: 22mm; object-fit: contain; display: block;" />
+                    `}
+                  </div>
                 ` : ''}
                 <div>
                   <span style="font-size: 7pt; font-weight: 800; color: #444;">PENGIRIM: </span>

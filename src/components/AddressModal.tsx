@@ -548,27 +548,27 @@ export const AddressModal: React.FC<AddressModalProps> = ({
                   onChange={e => setSelectedCourierName(e.target.value)}
                   className="w-full px-3 py-2 rounded-lg border border-slate-200 text-xs font-semibold text-slate-800 bg-white focus:border-pink-500"
                 >
-                  <optgroup label="Favorit">
-                    {allCouriers.filter(c => c.is_favorite).map(c => (
+                  <optgroup label="⭐ Kurir Favorit">
+                    {allCouriers.filter(c => c.is_active !== false && c.is_favorite).map(c => (
                       <option key={c.courier_id} value={c.courier_name}>★ {c.courier_name}</option>
                     ))}
                   </optgroup>
-                  <optgroup label="Reguler & Ekspres">
-                    {allCouriers.filter(c => !c.is_favorite && c.courier_category === 'Reguler & Ekspres').map(c => (
+                  <optgroup label="📦 Reguler & Ekspres">
+                    {allCouriers.filter(c => c.is_active !== false && !c.is_favorite && c.courier_category === 'Reguler & Ekspres').map(c => (
                       <option key={c.courier_id} value={c.courier_name}>{c.courier_name}</option>
                     ))}
                   </optgroup>
-                  <optgroup label="Instan & Same-day">
-                    {allCouriers.filter(c => !c.is_favorite && c.courier_category === 'Instan & Same-day').map(c => (
+                  <optgroup label="⚡ Instan & Same-day">
+                    {allCouriers.filter(c => c.is_active !== false && !c.is_favorite && c.courier_category === 'Instan & Same-day').map(c => (
                       <option key={c.courier_id} value={c.courier_name}>{c.courier_name}</option>
                     ))}
                   </optgroup>
-                  <optgroup label="Kargo & Internasional">
-                    {allCouriers.filter(c => !c.is_favorite && (c.courier_category === 'Kargo' || c.courier_category === 'Internasional')).map(c => (
+                  <optgroup label="🚛 Kargo & Internasional">
+                    {allCouriers.filter(c => c.is_active !== false && !c.is_favorite && (c.courier_category === 'Kargo' || c.courier_category === 'Internasional')).map(c => (
                       <option key={c.courier_id} value={c.courier_name}>{c.courier_name}</option>
                     ))}
                   </optgroup>
-                  <option value="Lainnya">Lainnya (Input Manual)</option>
+                  <option value="Lainnya">+ Kurir Lainnya (Input Manual)</option>
                 </select>
 
                 {selectedCourierName === 'Lainnya' && (

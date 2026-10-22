@@ -74,8 +74,14 @@ export const Sidebar: React.FC<SidebarProps> = ({
         } no-print`}
       >
         {/* Brand Header */}
-        <div className="p-5 border-b border-slate-100 flex items-center justify-between bg-gradient-to-b from-pink-50/50 to-white">
-          <YaxiyaLogo size="md" />
+        <div className="p-4 px-5 border-b border-slate-100 flex items-center justify-between bg-gradient-to-r from-pink-50/60 via-white to-pink-50/30">
+          <div 
+            onClick={() => handleMenuClick('dashboard')}
+            className="cursor-pointer group flex items-center"
+            title="Kembali ke Dashboard"
+          >
+            <YaxiyaLogo size="md" />
+          </div>
           <button 
             onClick={onCloseMobile}
             className="p-1 rounded-lg text-slate-400 hover:text-slate-700 lg:hidden"

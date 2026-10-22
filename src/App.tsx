@@ -74,15 +74,40 @@ export default function App() {
     setRefreshTrigger(prev => prev + 1);
   };
 
-  // Window focus listener for refreshing data when returning to tab
+  // Window focus & custom events listener for refreshing data
   useEffect(() => {
     const onFocus = () => {
       reloadData();
     };
+    const onCouriersUpdated = () => {
+      fetch('/api/couriers')
+        .then(res => res.json())
+        .then(data => {
+          if (data.success) {
+            setAllCouriers(data.data);
+          }
+        })
+        .catch(err => console.error('Error refreshing couriers:', err));
+    };
+    const onSettingsUpdated = () => {
+      fetch('/api/settings')
+        .then(res => res.json())
+        .then(data => {
+          if (data.success) {
+            setStoreSettings(data.data);
+          }
+        })
+        .catch(err => console.error('Error refreshing settings:', err));
+    };
+
     window.addEventListener('focus', onFocus);
+    window.addEventListener('couriers-updated', onCouriersUpdated);
+    window.addEventListener('settings-updated', onSettingsUpdated);
 
     return () => {
       window.removeEventListener('focus', onFocus);
+      window.removeEventListener('couriers-updated', onCouriersUpdated);
+      window.removeEventListener('settings-updated', onSettingsUpdated);
     };
   }, []);
 
@@ -412,13 +437,24 @@ export default function App() {
             >
               <Menu className="w-5 h-5" />
             </button>
-            <div>
-              <span className="text-xs font-bold text-pink-700 uppercase tracking-widest block font-display">
-                YAXIYA JEWELRY
-              </span>
-              <span className="text-xs text-slate-500 font-medium hidden sm:inline">
-                Pusat Manajemen Pengiriman & Multi-Alamat
-              </span>
+            <div 
+              onClick={() => handleMenuSelect('dashboard')}
+              className="flex items-center gap-2.5 cursor-pointer group"
+              title="Kembali ke Dashboard"
+            >
+              <img 
+                src="/assets/aistudio/LOGO_YAXIYA_Pink_-_Copy_c18e8ec2.png" 
+                alt="Yaxiya Jewelry"
+                className="h-7 w-auto object-contain shrink-0 lg:hidden"
+              />
+              <div>
+                <span className="text-xs font-bold text-pink-700 uppercase tracking-widest block font-display group-hover:text-pink-800 transition-colors">
+                  YAXIYA JEWELRY
+                </span>
+                <span className="text-xs text-slate-500 font-medium hidden sm:inline">
+                  Pusat Manajemen Pengiriman & Multi-Alamat
+                </span>
+              </div>
             </div>
           </div>
 
@@ -530,6 +566,7 @@ export default function App() {
         onSave={handleSaveCustomer}
         customerToEdit={customerToEdit}
         existingCustomers={allCustomers}
+        allCouriers={allCouriers}
       />
 
       {/* 2. Add / Edit Address Modal */}
