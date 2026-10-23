@@ -102,22 +102,38 @@ class SyncService {
 
       const remoteData = json.data;
 
-      // Normalize remote groups so ungrouped customers are strictly empty string ""
+      // Normalize remote groups so ungrouped customers/addresses are strictly empty string "" and valid groups are uppercase
+      const remoteGroupsFound = new Set<string>();
+      if (Array.isArray(remoteData.address_groups)) {
+        for (const g of remoteData.address_groups) {
+          const clean = String(g || '').trim().toUpperCase();
+          if (clean && clean !== '-' && clean !== 'NULL' && clean !== 'UNDEFINED') remoteGroupsFound.add(clean);
+        }
+      }
       if (Array.isArray(remoteData.customers)) {
         for (const c of remoteData.customers) {
-          const g = (c.group_name || '').trim();
-          if (g === '-' || g === ' ' || (g === 'HERMES' && !c.notes?.toLowerCase().includes('hermes'))) {
+          let g = (c.group_name || '').trim();
+          if (g === '-' || g === 'null' || g === 'undefined') {
             c.group_name = '';
+          } else if (g) {
+            c.group_name = g.toUpperCase();
+            remoteGroupsFound.add(c.group_name);
           }
         }
       }
       if (Array.isArray(remoteData.addresses)) {
         for (const a of remoteData.addresses) {
-          const g = (a.group_name || '').trim();
-          if (g === '-' || g === ' ' || (g === 'HERMES' && !a.shipping_notes?.toLowerCase().includes('hermes'))) {
+          let g = (a.group_name || '').trim();
+          if (g === '-' || g === 'null' || g === 'undefined') {
             a.group_name = '';
+          } else if (g) {
+            a.group_name = g.toUpperCase();
+            remoteGroupsFound.add(a.group_name);
           }
         }
+      }
+      if (remoteGroupsFound.size > 0) {
+        remoteData.address_groups = Array.from(remoteGroupsFound);
       }
 
       // Auto-reconcile missing customers from remote addresses so customers are never lost
@@ -527,6 +543,25 @@ class SyncService {
       if (t.entity_type === 'JASA_KIRIM' && t.entity_id === courierId) {
         db.updateSyncTask(t.sync_id, 'SYNCED', null);
       }
+    }
+  }
+
+  public async syncGroupsToSpreadsheet(groups: string[]): Promise<boolean> {
+    const appsScriptUrl = db.getAppsScriptUrl();
+    if (!appsScriptUrl) return false;
+    try {
+      const cleanGroups = groups.map(g => g.trim().toUpperCase()).filter(g => g && g !== '-');
+      const res = await fetch(appsScriptUrl, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'saveGroups', groups: cleanGroups }),
+        redirect: 'follow'
+      });
+      const data = await res.json().catch(() => null);
+      return !!(data && data.success);
+    } catch (e: any) {
+      console.warn('[SyncService] saveGroups warning:', e.message);
+      return false;
     }
   }
 

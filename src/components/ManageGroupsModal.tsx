@@ -37,12 +37,10 @@ export const ManageGroupsModal: React.FC<ManageGroupsModalProps> = ({
     setIsLoading(true);
     setError(null);
     try {
-      const res = await fetch('/api/address-groups');
+      const res = await fetch('/api/address-groups?refresh=true');
       const data = await res.json();
       if (data.success && Array.isArray(data.data)) {
         setGroups(data.data);
-      } else {
-        setGroups(['HERMES', 'DIAMOND', 'CHANEL']);
       }
     } catch (err: any) {
       console.error('Failed to load address groups:', err);
@@ -73,7 +71,7 @@ export const ManageGroupsModal: React.FC<ManageGroupsModalProps> = ({
       return;
     }
 
-    if (groups.some(g => g.toLowerCase() === cleanName.toLowerCase())) {
+    if (groups.some(g => g.toUpperCase() === cleanName)) {
       setError(`Grup "${cleanName}" sudah terdaftar.`);
       return;
     }
@@ -82,6 +80,8 @@ export const ManageGroupsModal: React.FC<ManageGroupsModalProps> = ({
     setError(null);
     setSuccessMsg(null);
     try {
+      // Optimistic addition
+      setGroups(prev => [...prev.filter(g => g.toUpperCase() !== cleanName), cleanName]);
       const res = await fetch('/api/address-groups', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -90,14 +90,17 @@ export const ManageGroupsModal: React.FC<ManageGroupsModalProps> = ({
       const data = await res.json();
       if (data.success) {
         setNewGroupName('');
-        setSuccessMsg(`Grup "${cleanName}" berhasil ditambahkan.`);
+        setSuccessMsg(`Grup "${cleanName}" berhasil ditambahkan dan disinkronkan ke Spreadsheet.`);
+        window.dispatchEvent(new CustomEvent('groups-updated'));
         await fetchGroups();
         onGroupsChanged();
       } else {
         setError(data.error || 'Gagal menambahkan grup.');
+        await fetchGroups();
       }
     } catch (err: any) {
       setError(err.message || 'Terjadi kesalahan sistem.');
+      await fetchGroups();
     } finally {
       setIsLoading(false);
     }
@@ -123,7 +126,7 @@ export const ManageGroupsModal: React.FC<ManageGroupsModalProps> = ({
       return;
     }
 
-    if (cleanNewName === oldName) {
+    if (cleanNewName === oldName.toUpperCase()) {
       cancelEditing();
       return;
     }
@@ -132,6 +135,8 @@ export const ManageGroupsModal: React.FC<ManageGroupsModalProps> = ({
     setError(null);
     setSuccessMsg(null);
     try {
+      // Optimistic rename
+      setGroups(prev => prev.map(g => g.toUpperCase() === oldName.toUpperCase() ? cleanNewName : g));
       const res = await fetch('/api/address-groups', {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
@@ -139,15 +144,18 @@ export const ManageGroupsModal: React.FC<ManageGroupsModalProps> = ({
       });
       const data = await res.json();
       if (data.success) {
-        setSuccessMsg(`Nama grup berhasil diubah menjadi "${cleanNewName}". Semua data alamat terkait telah otomatis diperbarui.`);
+        setSuccessMsg(`Nama grup berhasil diubah menjadi "${cleanNewName}". Semua data pelanggan dan alamat terkait telah otomatis diperbarui.`);
         cancelEditing();
+        window.dispatchEvent(new CustomEvent('groups-updated'));
         await fetchGroups();
         onGroupsChanged();
       } else {
         setError(data.error || 'Gagal mengubah nama grup.');
+        await fetchGroups();
       }
     } catch (err: any) {
       setError(err.message || 'Terjadi kesalahan sistem.');
+      await fetchGroups();
     } finally {
       setIsLoading(false);
     }
@@ -158,20 +166,26 @@ export const ManageGroupsModal: React.FC<ManageGroupsModalProps> = ({
     setError(null);
     setSuccessMsg(null);
     try {
+      // Optimistic removal
+      setGroups(prev => prev.filter(g => g.toUpperCase() !== groupName.toUpperCase()));
+      setDeleteConfirmGroup(null);
+
       const res = await fetch(`/api/address-groups/${encodeURIComponent(groupName)}`, {
         method: 'DELETE'
       });
       const data = await res.json();
       if (data.success) {
-        setSuccessMsg(`Grup "${groupName}" berhasil dihapus.`);
-        setDeleteConfirmGroup(null);
+        setSuccessMsg(`Grup "${groupName}" berhasil dihapus dari sistem dan Spreadsheet.`);
+        window.dispatchEvent(new CustomEvent('groups-updated'));
         await fetchGroups();
         onGroupsChanged();
       } else {
         setError(data.error || 'Gagal menghapus grup.');
+        await fetchGroups();
       }
     } catch (err: any) {
       setError(err.message || 'Terjadi kesalahan sistem.');
+      await fetchGroups();
     } finally {
       setIsLoading(false);
     }

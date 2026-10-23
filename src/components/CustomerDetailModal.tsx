@@ -67,6 +67,22 @@ export const CustomerDetailModal: React.FC<CustomerDetailModalProps> = ({
       setAddresses([]);
       setSelectedAddressIds([]);
     }
+
+    const onGroupsUpdated = () => {
+      if (isOpen && customerId) {
+        fetch(`/api/customers/${customerId}`)
+          .then(res => res.json())
+          .then(data => {
+            if (data.success) {
+              setCustomer(data.data);
+              setAddresses(data.data.addresses || []);
+            }
+          })
+          .catch(() => {});
+      }
+    };
+    window.addEventListener('groups-updated', onGroupsUpdated);
+    return () => window.removeEventListener('groups-updated', onGroupsUpdated);
   }, [isOpen, customerId, refreshTrigger]);
 
   if (!isOpen || !customerId) return null;

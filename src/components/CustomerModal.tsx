@@ -196,10 +196,10 @@ export const CustomerModal: React.FC<CustomerModalProps> = ({
 
   // Fetch groups
   const loadGroups = () => {
-    fetch('/api/address-groups')
+    fetch('/api/address-groups?refresh=true')
       .then(r => r.json())
       .then(data => {
-        if (data.success && Array.isArray(data.data) && data.data.length > 0) {
+        if (data.success && Array.isArray(data.data)) {
           setAvailableGroups(data.data);
         }
       })
@@ -210,6 +210,9 @@ export const CustomerModal: React.FC<CustomerModalProps> = ({
     if (isOpen) {
       loadGroups();
     }
+    const onGroupsUpdated = () => loadGroups();
+    window.addEventListener('groups-updated', onGroupsUpdated);
+    return () => window.removeEventListener('groups-updated', onGroupsUpdated);
   }, [isOpen]);
 
   // Fetch next ID from server for suggestion

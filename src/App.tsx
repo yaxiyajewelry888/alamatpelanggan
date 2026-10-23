@@ -185,6 +185,7 @@ export default function App() {
     if (isEdit && customerData.customer_id && customerToEdit && detailCustomerId === customerToEdit.customer_id) {
       setDetailCustomerId(customerData.customer_id.trim());
     }
+    window.dispatchEvent(new CustomEvent('groups-updated'));
     reloadData();
   };
 
@@ -301,6 +302,7 @@ export default function App() {
     if (!data.success) {
       throw new Error(data.error || 'Gagal menyimpan alamat');
     }
+    window.dispatchEvent(new CustomEvent('groups-updated'));
     reloadData();
   };
 

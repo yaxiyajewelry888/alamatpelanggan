@@ -262,6 +262,14 @@ apiRouter.put('/customers/:id', async (req: Request, res: Response) => {
       }
     } else {
       await syncService.syncCustomerToSpreadsheet(updated);
+      const customerAddrs = db.getAddresses(updated.customer_id);
+      for (const a of customerAddrs) {
+        await syncService.syncAddressToSpreadsheet(a);
+      }
+    }
+
+    if (updated.group_name) {
+      syncService.syncGroupsToSpreadsheet(db.getGroupNames()).catch(() => {});
     }
 
     res.json({ success: true, data: updated });
@@ -310,8 +318,12 @@ apiRouter.post('/customers/bulk-delete', async (req: Request, res: Response) => 
 });
 
 // --- 3. ADDRESSES & GROUPS ---
-apiRouter.get('/address-groups', (req: Request, res: Response) => {
+apiRouter.get('/address-groups', async (req: Request, res: Response) => {
   try {
+    const forceRefresh = req.query.refresh === 'true';
+    if (forceRefresh || syncService.getLastPullTime() === 0 || Date.now() - syncService.getLastPullTime() > 4000) {
+      await syncService.pullFromSpreadsheet(forceRefresh);
+    }
     const groups = db.getGroupNames();
     res.json({ success: true, data: groups });
   } catch (err: any) {
@@ -319,26 +331,28 @@ apiRouter.get('/address-groups', (req: Request, res: Response) => {
   }
 });
 
-apiRouter.post('/address-groups', (req: Request, res: Response) => {
+apiRouter.post('/address-groups', async (req: Request, res: Response) => {
   try {
     const { name } = req.body;
     if (!name || !name.trim()) {
       return res.status(400).json({ success: false, error: 'Nama grup wajib diisi.' });
     }
     const groups = db.createGroupName(name.trim());
+    await syncService.syncGroupsToSpreadsheet(groups);
     res.status(201).json({ success: true, data: groups });
   } catch (err: any) {
     res.status(400).json({ success: false, error: err.message });
   }
 });
 
-apiRouter.put('/address-groups', (req: Request, res: Response) => {
+apiRouter.put('/address-groups', async (req: Request, res: Response) => {
   try {
     const { old_name, new_name } = req.body;
     if (!old_name || !new_name) {
       return res.status(400).json({ success: false, error: 'Nama grup lama dan baru wajib diisi.' });
     }
     const result = db.updateGroupName(old_name, new_name);
+    await syncService.syncGroupsToSpreadsheet(db.getGroupNames());
     syncService.processQueue().catch(() => {});
     res.json({ success: true, data: result });
   } catch (err: any) {
@@ -346,10 +360,11 @@ apiRouter.put('/address-groups', (req: Request, res: Response) => {
   }
 });
 
-apiRouter.delete('/address-groups/:name', (req: Request, res: Response) => {
+apiRouter.delete('/address-groups/:name', async (req: Request, res: Response) => {
   try {
     const name = decodeURIComponent(req.params.name);
     const result = db.deleteGroupName(name);
+    await syncService.syncGroupsToSpreadsheet(db.getGroupNames());
     syncService.processQueue().catch(() => {});
     res.json({ success: true, data: result });
   } catch (err: any) {

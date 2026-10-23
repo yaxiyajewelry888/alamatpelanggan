@@ -255,17 +255,16 @@ class DatabaseEngine {
           this.data.address_groups = [...DEFAULT_GROUPS];
         }
 
-        // Clean any customer/address groups that were forcefully set to 'HERMES' or '-' previously
-        // Default group for customers without a specific group is EMPTY ("")
+        // Normalize any dash or invalid group strings
         for (const cust of this.data.customers) {
           const g = (cust.group_name || '').trim();
-          if (g === '-' || g === ' ' || (g === 'HERMES' && !cust.notes?.toLowerCase().includes('hermes'))) {
+          if (g === '-' || g === 'null' || g === 'undefined') {
             cust.group_name = '';
           }
         }
         for (const addr of this.data.addresses) {
           const g = (addr.group_name || '').trim();
-          if (g === '-' || g === ' ' || (g === 'HERMES' && !addr.shipping_notes?.toLowerCase().includes('hermes'))) {
+          if (g === '-' || g === 'null' || g === 'undefined') {
             addr.group_name = '';
           }
         }
@@ -414,16 +413,22 @@ class DatabaseEngine {
     }
 
     const timestamp = getCurrentDateFormatted();
+    const finalGroup = (input.group_name || '').trim().toUpperCase();
     const newCustomer: Customer = {
       customer_id: finalId,
       customer_name: input.customer_name.trim(),
       primary_phone: input.primary_phone.trim(),
-      group_name: (input.group_name || '').trim(),
+      group_name: finalGroup,
       notes: input.notes?.trim() || '',
       created_at: timestamp,
       updated_at: timestamp,
       status: input.status || 'active'
     };
+
+    this.data.address_groups = this.data.address_groups || [];
+    if (finalGroup && !this.data.address_groups.some(g => g.trim().toUpperCase() === finalGroup)) {
+      this.data.address_groups.push(finalGroup);
+    }
 
     this.data.customers.unshift(newCustomer);
 
@@ -475,7 +480,24 @@ class DatabaseEngine {
 
     if (updates.customer_name !== undefined) customer.customer_name = updates.customer_name.trim();
     if (updates.primary_phone !== undefined) customer.primary_phone = updates.primary_phone.trim();
-    if (updates.group_name !== undefined) customer.group_name = updates.group_name.trim();
+    if (updates.group_name !== undefined) {
+      const cleanGroup = (updates.group_name || '').trim().toUpperCase();
+      customer.group_name = cleanGroup;
+
+      // Update all addresses of this customer to also reflect this group
+      for (const addr of this.data.addresses) {
+        if (addr.customer_id.trim().toUpperCase() === oldId.toUpperCase() || addr.customer_id.trim().toUpperCase() === newId.toUpperCase()) {
+          addr.group_name = cleanGroup;
+          addr.updated_at = timestamp;
+          this.enqueueSync('ALAMAT_PENGIRIMAN', addr.address_id, 'UPDATE', addr);
+        }
+      }
+
+      this.data.address_groups = this.data.address_groups || [];
+      if (cleanGroup && !this.data.address_groups.some(g => g.trim().toUpperCase() === cleanGroup)) {
+        this.data.address_groups.push(cleanGroup);
+      }
+    }
     if (updates.notes !== undefined) customer.notes = updates.notes.trim();
     if (updates.status !== undefined) customer.status = updates.status;
     customer.updated_at = timestamp;
@@ -552,67 +574,82 @@ class DatabaseEngine {
 
   // --- ADDRESS METHODS ---
   public getAddresses(customerId?: string, includeArchived = false, groupName?: string): Address[] {
+    const targetCid = customerId ? customerId.trim().toUpperCase() : '';
     return this.data.addresses.filter(a => {
       if (a.status === 'deleted') return false;
       if (!includeArchived && a.status === 'archived') return false;
-      if (customerId && a.customer_id !== customerId) return false;
-      if (groupName && (a.group_name || '').toLowerCase() !== groupName.toLowerCase()) return false;
+      if (targetCid && a.customer_id.trim().toUpperCase() !== targetCid) return false;
+      if (groupName && (a.group_name || '').trim().toUpperCase() !== groupName.trim().toUpperCase()) return false;
       return true;
     });
   }
 
   public getGroupNames(): string[] {
-    const list = this.data.address_groups && this.data.address_groups.length > 0
-      ? [...this.data.address_groups]
-      : ['HERMES', 'DIAMOND', 'CHANEL'];
+    const set = new Set<string>();
 
-    const set = new Set<string>(list);
+    if (Array.isArray(this.data.address_groups)) {
+      for (const g of this.data.address_groups) {
+        const clean = (g || '').trim().toUpperCase();
+        if (clean && clean !== '-' && clean !== 'NULL' && clean !== 'UNDEFINED') {
+          set.add(clean);
+        }
+      }
+    }
 
     // Also include any active groups used by addresses or customers
     for (const a of this.data.addresses) {
-      if (a.status !== 'deleted' && a.group_name && a.group_name.trim()) {
-        set.add(a.group_name.trim());
+      if (a.status !== 'deleted' && a.group_name) {
+        const clean = a.group_name.trim().toUpperCase();
+        if (clean && clean !== '-' && clean !== 'NULL' && clean !== 'UNDEFINED') {
+          set.add(clean);
+        }
       }
     }
     for (const c of this.data.customers) {
-      if (c.status !== 'deleted' && c.group_name && c.group_name.trim()) {
-        set.add(c.group_name.trim());
+      if (c.status !== 'deleted' && c.group_name) {
+        const clean = c.group_name.trim().toUpperCase();
+        if (clean && clean !== '-' && clean !== 'NULL' && clean !== 'UNDEFINED') {
+          set.add(clean);
+        }
       }
+    }
+
+    if (set.size === 0) {
+      return ['HERMES', 'DIAMOND', 'CHANEL'];
     }
 
     return Array.from(set);
   }
 
   public createGroupName(name: string): string[] {
-    const cleanName = (name || '').trim();
+    const cleanName = (name || '').trim().toUpperCase();
     if (!cleanName) {
       throw new Error('Nama grup tidak boleh kosong.');
     }
 
-    this.data.address_groups = this.data.address_groups || ['HERMES', 'DIAMOND', 'CHANEL'];
-    const exists = this.data.address_groups.some(g => g.toLowerCase() === cleanName.toLowerCase());
-    if (exists) {
-      throw new Error(`Grup "${cleanName}" sudah ada.`);
+    this.data.address_groups = this.data.address_groups || [];
+    const exists = this.data.address_groups.some(g => g.trim().toUpperCase() === cleanName);
+    if (!exists) {
+      this.data.address_groups.push(cleanName);
     }
 
-    this.data.address_groups.push(cleanName);
     this.logActivity('TAMBAH_GRUP_ALAMAT', `Grup alamat baru "${cleanName}" ditambahkan`, cleanName);
     this.save();
     return this.getGroupNames();
   }
 
   public updateGroupName(oldName: string, newName: string): { oldName: string; newName: string; updatedCount: number } {
-    const cleanOld = (oldName || '').trim();
-    const cleanNew = (newName || '').trim();
+    const cleanOld = (oldName || '').trim().toUpperCase();
+    const cleanNew = (newName || '').trim().toUpperCase();
 
     if (!cleanOld || !cleanNew) {
       throw new Error('Nama grup lama dan nama grup baru wajib diisi.');
     }
 
-    this.data.address_groups = this.data.address_groups || ['HERMES', 'DIAMOND', 'CHANEL'];
+    this.data.address_groups = this.data.address_groups || [];
     
     // Check if new name already exists elsewhere
-    const conflict = this.data.address_groups.some(g => g.toLowerCase() === cleanNew.toLowerCase() && g.toLowerCase() !== cleanOld.toLowerCase());
+    const conflict = this.data.address_groups.some(g => g.trim().toUpperCase() === cleanNew && g.trim().toUpperCase() !== cleanOld);
     if (conflict) {
       throw new Error(`Grup dengan nama "${cleanNew}" sudah ada.`);
     }
@@ -620,11 +657,11 @@ class DatabaseEngine {
     // Update in address_groups list
     let foundInList = false;
     this.data.address_groups = this.data.address_groups.map(g => {
-      if (g.toLowerCase() === cleanOld.toLowerCase()) {
+      if (g.trim().toUpperCase() === cleanOld) {
         foundInList = true;
         return cleanNew;
       }
-      return g;
+      return g.trim().toUpperCase();
     });
 
     if (!foundInList) {
@@ -636,7 +673,7 @@ class DatabaseEngine {
 
     // Update all matching addresses
     for (const addr of this.data.addresses) {
-      if (addr.group_name && addr.group_name.toLowerCase() === cleanOld.toLowerCase()) {
+      if ((addr.group_name || '').trim().toUpperCase() === cleanOld) {
         addr.group_name = cleanNew;
         addr.updated_at = timestamp;
         updatedCount++;
@@ -646,7 +683,7 @@ class DatabaseEngine {
 
     // Update all matching customers
     for (const cust of this.data.customers) {
-      if (cust.group_name && cust.group_name.toLowerCase() === cleanOld.toLowerCase()) {
+      if ((cust.group_name || '').trim().toUpperCase() === cleanOld) {
         cust.group_name = cleanNew;
         cust.updated_at = timestamp;
         this.enqueueSync('PELANGGAN', cust.customer_id, 'UPDATE', cust);
@@ -660,20 +697,21 @@ class DatabaseEngine {
   }
 
   public deleteGroupName(name: string): { success: boolean; deleted: string; clearedCount: number } {
-    const cleanName = (name || '').trim();
+    const cleanName = (name || '').trim().toUpperCase();
     if (!cleanName) {
       throw new Error('Nama grup yang akan dihapus tidak valid.');
     }
 
-    this.data.address_groups = this.data.address_groups || ['HERMES', 'DIAMOND', 'CHANEL'];
-    this.data.address_groups = this.data.address_groups.filter(g => g.toLowerCase() !== cleanName.toLowerCase());
+    this.data.address_groups = (this.data.address_groups || []).filter(
+      g => g.trim().toUpperCase() !== cleanName
+    );
 
     let clearedCount = 0;
     const timestamp = getCurrentDateFormatted();
 
     // Clear group from addresses
     for (const addr of this.data.addresses) {
-      if (addr.group_name && addr.group_name.toLowerCase() === cleanName.toLowerCase()) {
+      if ((addr.group_name || '').trim().toUpperCase() === cleanName) {
         addr.group_name = '';
         addr.updated_at = timestamp;
         clearedCount++;
@@ -683,14 +721,14 @@ class DatabaseEngine {
 
     // Clear group from customers
     for (const cust of this.data.customers) {
-      if (cust.group_name && cust.group_name.toLowerCase() === cleanName.toLowerCase()) {
+      if ((cust.group_name || '').trim().toUpperCase() === cleanName) {
         cust.group_name = '';
         cust.updated_at = timestamp;
         this.enqueueSync('PELANGGAN', cust.customer_id, 'UPDATE', cust);
       }
     }
 
-    this.logActivity('HAPUS_GRUP_ALAMAT', `Grup alamat "${cleanName}" dihapus (${clearedCount} alamat kini tanpa grup)`, cleanName);
+    this.logActivity('HAPUS_GRUP_ALAMAT', `Grup alamat "${cleanName}" dihapus (${clearedCount} pelanggan/alamat kini tanpa grup)`, cleanName);
     this.save();
 
     return { success: true, deleted: cleanName, clearedCount };
@@ -1115,8 +1153,10 @@ class DatabaseEngine {
         seenCustIds.add(cid.toUpperCase());
 
         let grp = (rawCust.group_name || '').trim();
-        if (grp === '-' || grp === ' ' || (grp === 'HERMES' && !rawCust.notes?.toLowerCase().includes('hermes'))) {
+        if (grp === '-' || grp === 'null' || grp === 'undefined') {
           grp = '';
+        } else if (grp) {
+          grp = grp.toUpperCase();
         }
 
         uniqueCustomers.push({
@@ -1154,8 +1194,10 @@ class DatabaseEngine {
         seenAddrIds.add(aidUpper);
 
         let grp = (rawAddr.group_name || '').trim();
-        if (grp === '-' || grp === ' ' || (grp === 'HERMES' && !rawAddr.shipping_notes?.toLowerCase().includes('hermes'))) {
+        if (grp === '-' || grp === 'null' || grp === 'undefined') {
           grp = '';
+        } else if (grp) {
+          grp = grp.toUpperCase();
         }
 
         uniqueAddresses.push({
@@ -1166,9 +1208,24 @@ class DatabaseEngine {
       }
       this.data.addresses = uniqueAddresses;
     }
+
+    const groupSet = new Set<string>();
     if (payload.address_groups && Array.isArray(payload.address_groups)) {
-      this.data.address_groups = payload.address_groups;
+      for (const g of payload.address_groups) {
+        const clean = String(g || '').trim().toUpperCase();
+        if (clean && clean !== '-' && clean !== 'NULL' && clean !== 'UNDEFINED') groupSet.add(clean);
+      }
     }
+    for (const c of this.data.customers) {
+      if (c.group_name && c.group_name.trim()) groupSet.add(c.group_name.trim().toUpperCase());
+    }
+    for (const a of this.data.addresses) {
+      if (a.group_name && a.group_name.trim()) groupSet.add(a.group_name.trim().toUpperCase());
+    }
+    if (groupSet.size > 0) {
+      this.data.address_groups = Array.from(groupSet);
+    }
+
     if (payload.couriers && Array.isArray(payload.couriers) && payload.couriers.length > 0) {
       this.data.couriers = payload.couriers;
     }

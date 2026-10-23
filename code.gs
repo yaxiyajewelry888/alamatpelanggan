@@ -580,11 +580,35 @@ function getAllDataFromSheets() {
   }
 
   // 3. Baca Grup Alamat
+  var groupSet = {};
   var groupSheet = ss.getSheetByName(SHEET_CONFIG.GRUP_ALAMAT.name);
   if (groupSheet && groupSheet.getLastRow() > 1) {
     var groupValues = groupSheet.getRange(2, 1, groupSheet.getLastRow() - 1, 1).getValues();
-    var grps = groupValues.map(function(r) { return String(r[0] || '').trim(); }).filter(Boolean);
-    if (grps.length > 0) result.address_groups = grps;
+    groupValues.forEach(function(r) {
+      var g = String(r[0] || '').trim();
+      if (g && g !== '-' && g !== 'null' && g !== 'undefined') {
+        groupSet[g.toUpperCase()] = g;
+      }
+    });
+  }
+
+  // Juga otomatis ambil setiap grup baru yang ditulis langsung di kolom PELANGGAN atau ALAMAT_PENGIRIMAN
+  result.customers.forEach(function(c) {
+    var g = String(c.group_name || '').trim();
+    if (g && g !== '-' && g !== 'null' && g !== 'undefined') {
+      groupSet[g.toUpperCase()] = g;
+    }
+  });
+  result.addresses.forEach(function(a) {
+    var g = String(a.group_name || '').trim();
+    if (g && g !== '-' && g !== 'null' && g !== 'undefined') {
+      groupSet[g.toUpperCase()] = g;
+    }
+  });
+
+  result.address_groups = Object.keys(groupSet).map(function(k) { return groupSet[k]; });
+  if (result.address_groups.length === 0) {
+    result.address_groups = ['HERMES', 'DIAMOND', 'CHANEL'];
   }
 
   // 4. Baca Jasa Kirim

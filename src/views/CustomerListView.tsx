@@ -10,6 +10,8 @@ import {
   Trash2, 
   ChevronLeft, 
   ChevronRight, 
+  ChevronsLeft,
+  ChevronsRight,
   FolderKanban,
   RotateCcw,
   ChevronDown,
@@ -82,12 +84,18 @@ export const CustomerListView: React.FC<CustomerListViewProps> = ({
   const [groupFilter, setGroupFilter] = useState('');
   const [addressGroups, setAddressGroups] = useState<string[]>([]);
   const [page, setPage] = useState(1);
-  const [limit, setLimit] = useState(15);
+  const [limit, setLimit] = useState(10);
+  const [pageSearchInput, setPageSearchInput] = useState('1');
 
   const [customers, setCustomers] = useState<Customer[]>([]);
   const [total, setTotal] = useState(0);
   const [totalPages, setTotalPages] = useState(1);
   const [isLoading, setIsLoading] = useState(false);
+
+  // Sync pageSearchInput whenever page changes
+  useEffect(() => {
+    setPageSearchInput(String(page));
+  }, [page]);
 
   // Selected customer IDs for bulk actions (print & delete selected)
   const [selectedCustomerIds, setSelectedCustomerIds] = useState<Set<string>>(new Set());
@@ -156,6 +164,7 @@ export const CustomerListView: React.FC<CustomerListViewProps> = ({
       const data = await res.json();
       if (data.success) {
         alert(`Berhasil sinkronisasi dari Google Spreadsheet!\nDimuat: ${data.data.customers} pelanggan, ${data.data.addresses} alamat.`);
+        fetchAddressGroups();
         fetchCustomers();
       } else {
         alert(data.error || 'Gagal sinkronisasi data dari Spreadsheet');
@@ -168,7 +177,7 @@ export const CustomerListView: React.FC<CustomerListViewProps> = ({
   };
 
   const fetchAddressGroups = () => {
-    fetch('/api/address-groups')
+    fetch('/api/address-groups?refresh=true')
       .then(r => r.json())
       .then(d => {
         if (d.success && Array.isArray(d.data)) {
@@ -178,9 +187,15 @@ export const CustomerListView: React.FC<CustomerListViewProps> = ({
       .catch(() => {});
   };
 
-  // Fetch address groups for filter
+  // Fetch address groups on trigger or groups-updated broadcast
   useEffect(() => {
     fetchAddressGroups();
+    const onGroupsUpdated = () => {
+      fetchAddressGroups();
+      fetchCustomers();
+    };
+    window.addEventListener('groups-updated', onGroupsUpdated);
+    return () => window.removeEventListener('groups-updated', onGroupsUpdated);
   }, [refreshTrigger]);
 
   const fetchCustomers = async () => {
@@ -817,26 +832,122 @@ export const CustomerListView: React.FC<CustomerListViewProps> = ({
         </div>
 
         {/* Pagination Bar */}
-        <div className="px-5 py-3.5 border-t border-slate-100 flex items-center justify-between text-xs text-slate-600 bg-slate-50/50">
-          <div>
-            Menampilkan {customers.length} dari {total} pelanggan (Halaman {page} dari {totalPages})
+        <div className="px-5 py-4 border-t border-slate-100 flex flex-col md:flex-row md:items-center justify-between gap-4 text-xs text-slate-600 bg-slate-50/70">
+          
+          {/* Info & Limit Selector (10/page, 50/page, 100/page, 300/page, 500/page) */}
+          <div className="flex flex-wrap items-center gap-3">
+            <span className="font-medium text-slate-700">
+              Menampilkan <strong className="text-slate-900">{total === 0 ? 0 : (page - 1) * limit + 1}</strong> - <strong className="text-slate-900">{Math.min((page - 1) * limit + customers.length, total)}</strong> dari <strong className="text-slate-900">{total}</strong> pelanggan
+            </span>
+
+            <div className="flex items-center gap-1.5 pl-2 border-l border-slate-200">
+              <span className="text-slate-500 font-medium">Tampilkan:</span>
+              <select
+                value={limit}
+                onChange={e => {
+                  const newLimit = parseInt(e.target.value, 10);
+                  setLimit(newLimit);
+                  setPage(1);
+                }}
+                className="px-2.5 py-1.5 rounded-lg border border-slate-300 bg-white font-bold text-slate-800 outline-none focus:border-pink-500 focus:ring-1 focus:ring-pink-200 shadow-2xs cursor-pointer"
+              >
+                <option value={10}>10/page</option>
+                <option value={50}>50/page</option>
+                <option value={100}>100/page</option>
+                <option value={300}>300/page</option>
+                <option value={500}>500/page</option>
+              </select>
+            </div>
           </div>
-          <div className="flex items-center gap-2">
-            <button
-              onClick={() => setPage(Math.max(1, page - 1))}
-              disabled={page <= 1}
-              className="p-1.5 rounded-lg border border-slate-200 bg-white hover:bg-slate-50 disabled:opacity-40 transition-colors"
+
+          {/* Kolom Pencarian Halaman & Tombol Navigasi */}
+          <div className="flex flex-wrap items-center gap-3">
+            
+            {/* Kolom Pencarian Page */}
+            <form
+              onSubmit={e => {
+                e.preventDefault();
+                const target = parseInt(pageSearchInput, 10);
+                if (!isNaN(target)) {
+                  const clamped = Math.max(1, Math.min(totalPages, target));
+                  setPage(clamped);
+                  setPageSearchInput(String(clamped));
+                }
+              }}
+              className="flex items-center gap-1.5"
             >
-              <ChevronLeft className="w-4 h-4" />
-            </button>
-            <span className="font-mono font-bold px-2">{page}</span>
-            <button
-              onClick={() => setPage(Math.min(totalPages, page + 1))}
-              disabled={page >= totalPages}
-              className="p-1.5 rounded-lg border border-slate-200 bg-white hover:bg-slate-50 disabled:opacity-40 transition-colors"
-            >
-              <ChevronRight className="w-4 h-4" />
-            </button>
+              <label htmlFor="page-search-input" className="text-slate-500 font-medium">
+                Cari Hal:
+              </label>
+              <div className="flex items-center gap-1">
+                <input
+                  id="page-search-input"
+                  type="number"
+                  min={1}
+                  max={totalPages}
+                  value={pageSearchInput}
+                  onChange={e => setPageSearchInput(e.target.value)}
+                  placeholder="Hal"
+                  className="w-16 px-2.5 py-1.5 rounded-lg border border-slate-300 bg-white font-mono font-bold text-slate-800 text-center outline-none focus:border-pink-500 focus:ring-1 focus:ring-pink-200 shadow-2xs"
+                  title={`Masukkan nomor halaman 1 sampai ${totalPages}`}
+                />
+                <button
+                  type="submit"
+                  className="px-2.5 py-1.5 rounded-lg bg-pink-600 hover:bg-pink-700 text-white font-bold text-xs shadow-2xs transition-colors"
+                  title="Lompat ke halaman yang dicari"
+                >
+                  Tuju
+                </button>
+              </div>
+            </form>
+
+            {/* Navigation buttons: First, Prev, Indicator, Next, Last */}
+            <div className="flex items-center gap-1 pl-2 border-l border-slate-200">
+              <button
+                type="button"
+                onClick={() => setPage(1)}
+                disabled={page <= 1}
+                className="p-1.5 rounded-lg border border-slate-200 bg-white hover:bg-slate-100 disabled:opacity-30 disabled:hover:bg-white text-slate-700 transition-colors shadow-2xs"
+                title="Halaman Pertama (1)"
+              >
+                <ChevronsLeft className="w-4 h-4" />
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setPage(Math.max(1, page - 1))}
+                disabled={page <= 1}
+                className="p-1.5 rounded-lg border border-slate-200 bg-white hover:bg-slate-100 disabled:opacity-30 disabled:hover:bg-white text-slate-700 transition-colors shadow-2xs"
+                title="Halaman Sebelumnya"
+              >
+                <ChevronLeft className="w-4 h-4" />
+              </button>
+
+              <div className="px-2.5 py-1 font-mono font-bold text-xs text-slate-800 bg-white rounded-lg border border-slate-200 shadow-2xs whitespace-nowrap">
+                Hal {page} / {totalPages}
+              </div>
+
+              <button
+                type="button"
+                onClick={() => setPage(Math.min(totalPages, page + 1))}
+                disabled={page >= totalPages}
+                className="p-1.5 rounded-lg border border-slate-200 bg-white hover:bg-slate-100 disabled:opacity-30 disabled:hover:bg-white text-slate-700 transition-colors shadow-2xs"
+                title="Halaman Selanjutnya"
+              >
+                <ChevronRight className="w-4 h-4" />
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setPage(totalPages)}
+                disabled={page >= totalPages}
+                className="p-1.5 rounded-lg border border-slate-200 bg-white hover:bg-slate-100 disabled:opacity-30 disabled:hover:bg-white text-slate-700 transition-colors shadow-2xs"
+                title={`Halaman Terakhir (${totalPages})`}
+              >
+                <ChevronsRight className="w-4 h-4" />
+              </button>
+            </div>
+
           </div>
         </div>
       </div>

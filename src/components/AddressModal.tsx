@@ -56,10 +56,10 @@ export const AddressModal: React.FC<AddressModalProps> = ({
 
   // Fetch unique group names
   const loadGroups = () => {
-    fetch('/api/address-groups')
+    fetch('/api/address-groups?refresh=true')
       .then(r => r.json())
       .then(d => {
-        if (d.success && Array.isArray(d.data) && d.data.length > 0) {
+        if (d.success && Array.isArray(d.data)) {
           setExistingGroups(d.data);
         }
       })
@@ -70,6 +70,9 @@ export const AddressModal: React.FC<AddressModalProps> = ({
     if (isOpen) {
       loadGroups();
     }
+    const onGroupsUpdated = () => loadGroups();
+    window.addEventListener('groups-updated', onGroupsUpdated);
+    return () => window.removeEventListener('groups-updated', onGroupsUpdated);
   }, [isOpen]);
 
   useEffect(() => {
