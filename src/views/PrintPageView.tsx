@@ -13,7 +13,10 @@ import {
   CheckSquare, 
   Square,
   AlertCircle,
-  Scissors
+  Scissors,
+  BookmarkPlus,
+  Save,
+  Loader2
 } from 'lucide-react';
 import { YaxiyaLogo } from '../utils/logo';
 import { openPrintWindow } from '../utils/printHelper';
@@ -53,6 +56,13 @@ export const PrintPageView: React.FC<PrintPageViewProps> = ({
   const [dropshipSenderPhone, setDropshipSenderPhone] = useState<string>('');
   const [dropshipSenderCity, setDropshipSenderCity] = useState<string>('');
 
+  // Save Dropship Address to Multi-Address state
+  const [saveDropshipMode, setSaveDropshipMode] = useState<'create_new' | 'update_existing'>('create_new');
+  const [autoSaveDropshipOnPrint, setAutoSaveDropshipOnPrint] = useState<boolean>(true);
+  const [isSavingDropship, setIsSavingDropship] = useState<boolean>(false);
+  const [dropshipSaveSuccessMsg, setDropshipSaveSuccessMsg] = useState<string | null>(null);
+  const [savedDropshipIds, setSavedDropshipIds] = useState<Set<string>>(new Set());
+
   // Store Settings (Default Pengirim & Logo)
   const [storeSettings, setStoreSettings] = useState<StoreSettings>(defaultSettings || {
     store_name: 'YAXIYA JEWELRY',
@@ -73,12 +83,26 @@ export const PrintPageView: React.FC<PrintPageViewProps> = ({
           if (d.success && d.data.length > 0) {
             setAddresses(d.data);
             setSelectedIds([d.data[0].address_id]);
+            const savedDropship = d.data.find((a: Address) => a.is_dropship || Boolean(a.dropship_sender_name && a.dropship_sender_name.trim()) || a.address_label === 'Dropship');
+            if (savedDropship) {
+              setIsDropshipMode(true);
+              if (savedDropship.dropship_sender_name) setDropshipSenderName(savedDropship.dropship_sender_name);
+              if (savedDropship.dropship_sender_phone) setDropshipSenderPhone(savedDropship.dropship_sender_phone);
+              if (savedDropship.dropship_sender_city) setDropshipSenderCity(savedDropship.dropship_sender_city);
+            }
           }
         })
         .catch(() => {});
     } else {
       setAddresses(initialAddresses);
       setSelectedIds(initialAddresses.map(a => a.address_id));
+      const savedDropship = initialAddresses.find(a => a.is_dropship || Boolean(a.dropship_sender_name && a.dropship_sender_name.trim()) || a.address_label === 'Dropship');
+      if (savedDropship) {
+        setIsDropshipMode(true);
+        if (savedDropship.dropship_sender_name) setDropshipSenderName(savedDropship.dropship_sender_name);
+        if (savedDropship.dropship_sender_phone) setDropshipSenderPhone(savedDropship.dropship_sender_phone);
+        if (savedDropship.dropship_sender_city) setDropshipSenderCity(savedDropship.dropship_sender_city);
+      }
     }
   }, [initialAddresses]);
 
@@ -95,9 +119,19 @@ export const PrintPageView: React.FC<PrintPageViewProps> = ({
   }, []);
 
   const toggleSelect = (id: string) => {
-    setSelectedIds(prev => 
-      prev.includes(id) ? prev.filter(item => item !== id) : [...prev, id]
-    );
+    setSelectedIds(prev => {
+      const next = prev.includes(id) ? prev.filter(item => item !== id) : [...prev, id];
+      if (next.includes(id)) {
+        const picked = addresses.find(a => a.address_id === id);
+        if (picked && (picked.is_dropship || picked.dropship_sender_name)) {
+          setIsDropshipMode(true);
+          if (picked.dropship_sender_name) setDropshipSenderName(picked.dropship_sender_name);
+          if (picked.dropship_sender_phone) setDropshipSenderPhone(picked.dropship_sender_phone);
+          if (picked.dropship_sender_city) setDropshipSenderCity(picked.dropship_sender_city);
+        }
+      }
+      return next;
+    });
   };
 
   const selectAll = () => {
@@ -117,6 +151,28 @@ export const PrintPageView: React.FC<PrintPageViewProps> = ({
       printItems.push(addr);
     }
   });
+
+  // Helper for computing sender info per item (Dropship suppresses logo and default store name)
+  const getItemSenderInfo = (item: Address) => {
+    const itemIsDropship = isDropshipMode || Boolean(item.is_dropship) || Boolean(item.dropship_sender_name && item.dropship_sender_name.trim()) || item.address_label === 'Dropship';
+    const senderName = itemIsDropship
+      ? (dropshipSenderName.trim() || item.dropship_sender_name?.trim() || 'PENGIRIM DROPSHIP')
+      : storeSettings.store_name;
+    const senderPhone = itemIsDropship
+      ? (dropshipSenderPhone.trim() || item.dropship_sender_phone?.trim() || '')
+      : storeSettings.phone;
+    const itemCity = (dropshipSenderCity.trim() || item.dropship_sender_city?.trim() || '');
+    const senderAddress = itemIsDropship
+      ? (itemCity ? `Pengiriman dari: ${itemCity}` : '')
+      : `${storeSettings.address}, ${storeSettings.city}`;
+
+    return {
+      itemIsDropship,
+      senderName,
+      senderPhone,
+      senderAddress
+    };
+  };
 
   // Effective sender details
   const effectiveSenderName = isDropshipMode && dropshipSenderName.trim()
@@ -168,13 +224,15 @@ export const PrintPageView: React.FC<PrintPageViewProps> = ({
     const isThermal = format === 'thermal_100x150';
 
     if (isThermal) {
-      return printItems.map((item) => `
+      return printItems.map((item) => {
+        const { itemIsDropship, senderName, senderPhone, senderAddress } = getItemSenderInfo(item);
+        return `
         <div class="thermal-card page-break" style="width: 100mm; height: 148mm; padding: 4.5mm; box-sizing: border-box; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; color: #000; background: #fff; display: flex; flex-direction: column; justify-content: space-between; border: 2.5px solid #000; margin: 0 auto; page-break-after: always; break-after: page;">
           <div>
-            <!-- HEADER ATAS: PENGIRIM (Logo di kiri, Detail Pengirim di sampingnya. DROPSHIP = LOGO OTOMATIS HILANG) -->
+            <!-- HEADER ATAS: PENGIRIM (DROPSHIP = LOGO DAN NAMA TOKO BAWAAN OTOMATIS HILANG) -->
             <div style="display: flex; align-items: center; justify-content: space-between; border-bottom: 2.5px solid #000; padding-bottom: 3mm; gap: 3.5mm;">
               <div style="display: flex; align-items: center; gap: 3mm; min-width: 0;">
-                ${!isDropshipMode && storeSettings.show_logo_on_print && storeSettings.logo_mode !== 'none' ? `
+                ${!itemIsDropship && storeSettings.show_logo_on_print && storeSettings.logo_mode !== 'none' ? `
                   <div style="flex-shrink: 0; display: flex; align-items: center;">
                     ${(storeSettings.logo_mode === 'custom' || storeSettings.custom_logo_url) && storeSettings.custom_logo_url ? `
                       <img src="${storeSettings.custom_logo_url}" style="max-height: 12mm; max-width: 25mm; object-fit: contain; display: block;" alt="Logo" onerror="this.style.display='none'" />
@@ -185,9 +243,9 @@ export const PrintPageView: React.FC<PrintPageViewProps> = ({
                 ` : ''}
                 <div style="min-width: 0; line-height: 1.25;">
                   <div style="font-size: 7.5pt; font-weight: 800; color: #444; text-transform: uppercase; letter-spacing: 0.5px;">PENGIRIM:</div>
-                  <div style="font-weight: 900; font-size: ${isDropshipMode ? '11.5pt' : '12pt'}; text-transform: uppercase; word-wrap: break-word;">${effectiveSenderName}</div>
-                  <div style="font-family: monospace; font-size: 9.5pt; font-weight: 800;">${effectiveSenderPhone}</div>
-                  ${effectiveSenderAddress ? `<div style="font-size: 7.5pt; color: #333; margin-top: 1px; word-wrap: break-word;">${effectiveSenderAddress}</div>` : ''}
+                  <div style="font-weight: 900; font-size: ${itemIsDropship ? '11.5pt' : '12pt'}; text-transform: uppercase; word-wrap: break-word;">${senderName}</div>
+                  <div style="font-family: monospace; font-size: 9.5pt; font-weight: 800;">${senderPhone}</div>
+                  ${senderAddress ? `<div style="font-size: 7.5pt; color: #333; margin-top: 1px; word-wrap: break-word;">${senderAddress}</div>` : ''}
                 </div>
               </div>
             </div>
@@ -240,16 +298,19 @@ export const PrintPageView: React.FC<PrintPageViewProps> = ({
             Tgl Cetak: ${currentPrintDate}
           </div>
         </div>
-      `).join('');
+      `;
+      }).join('');
     } else {
       // HVS A4 (3 Bagian per Lembar)
-      const renderA4ItemHtml = (item: Address, slotIdx: number, modeLabel: string) => `
+      const renderA4ItemHtml = (item: Address, slotIdx: number, modeLabel: string) => {
+        const { itemIsDropship, senderName, senderPhone, senderAddress } = getItemSenderInfo(item);
+        return `
         <div style="height: 91mm; border: 1.5px dashed #000; padding: 3mm 4mm; box-sizing: border-box; display: flex; flex-direction: column; justify-content: space-between; margin-bottom: 2mm; position: relative;">
           <div>
-            <!-- HEADER ATAS: PENGIRIM -->
+            <!-- HEADER ATAS: PENGIRIM (DROPSHIP = LOGO DAN NAMA TOKO BAWAAN OTOMATIS HILANG) -->
             <div style="display: flex; align-items: center; justify-content: space-between; border-bottom: 1.5px solid #000; padding-bottom: 1.5mm;">
               <div style="display: flex; align-items: center; gap: 2.5mm;">
-                ${!isDropshipMode && storeSettings.show_logo_on_print && storeSettings.logo_mode !== 'none' ? `
+                ${!itemIsDropship && storeSettings.show_logo_on_print && storeSettings.logo_mode !== 'none' ? `
                   <div style="flex-shrink: 0; display: inline-flex; align-items: center;">
                     ${(storeSettings.logo_mode === 'custom' || storeSettings.custom_logo_url) && storeSettings.custom_logo_url ? `
                       <img src="${storeSettings.custom_logo_url}" alt="Logo Toko" style="max-height: 9mm; max-width: 22mm; object-fit: contain; display: block;" onerror="this.style.display='none'" />
@@ -260,8 +321,9 @@ export const PrintPageView: React.FC<PrintPageViewProps> = ({
                 ` : ''}
                 <div>
                   <span style="font-size: 7pt; font-weight: 800; color: #444;">PENGIRIM: </span>
-                  <strong style="font-size: 9.5pt; text-transform: uppercase;">${effectiveSenderName}</strong>
-                  <span style="font-family: monospace; font-size: 8pt; font-weight: 800; margin-left: 2mm;">(${effectiveSenderPhone})</span>
+                  <strong style="font-size: 9.5pt; text-transform: uppercase;">${senderName}</strong>
+                  ${senderPhone ? `<span style="font-family: monospace; font-size: 8pt; font-weight: 800; margin-left: 2mm;">(${senderPhone})</span>` : ''}
+                  ${senderAddress ? `<span style="font-size: 7pt; color: #555; margin-left: 2mm;">[${senderAddress}]</span>` : ''}
                 </div>
               </div>
               ${showCustomerId ? `<div style="font-family: monospace; font-size: 7.5pt; font-weight: 800;">ID: ${item.customer_id}</div>` : ''}
@@ -300,6 +362,7 @@ export const PrintPageView: React.FC<PrintPageViewProps> = ({
           </div>
         </div>
       `;
+      };
 
       const renderEmptySlotHtml = (slotIdx: number) => `
         <div style="height: 91mm; border: 1px dotted #ccc; background: #fafafa; margin-bottom: 2mm; box-sizing: border-box; display: flex; align-items: center; justify-content: center; color: #999; font-size: 8pt; font-family: monospace;">
@@ -349,6 +412,77 @@ export const PrintPageView: React.FC<PrintPageViewProps> = ({
     }
   };
 
+  const handleSaveDropshipAddress = async (targetAddr?: Address, quiet: boolean = false): Promise<Address | null> => {
+    const addr = targetAddr || selectedAddresses[0];
+    if (!addr) {
+      if (!quiet) alert('Pilih minimal satu alamat penerima terlebih dahulu.');
+      return null;
+    }
+
+    if (!dropshipSenderName.trim() || !dropshipSenderPhone.trim()) {
+      if (!quiet) alert('Silakan isi Nama Pengirim Dropship dan No. Telepon Pengirim terlebih dahulu.');
+      return null;
+    }
+
+    setIsSavingDropship(true);
+    setDropshipSaveSuccessMsg(null);
+
+    try {
+      const response = await fetch('/api/addresses/save-dropship', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          address_id: addr.address_id,
+          customer_id: addr.customer_id,
+          recipient_name: addr.recipient_name,
+          recipient_phone: addr.recipient_phone,
+          full_address: addr.full_address,
+          village: addr.village,
+          district: addr.district,
+          city: addr.city,
+          province: addr.province,
+          postal_code: addr.postal_code,
+          shipping_courier: addr.shipping_courier,
+          shipping_service: addr.shipping_service,
+          shipping_notes: addr.shipping_notes,
+          dropship_sender_name: dropshipSenderName.trim(),
+          dropship_sender_phone: dropshipSenderPhone.trim(),
+          dropship_sender_city: dropshipSenderCity.trim(),
+          mode: saveDropshipMode
+        })
+      });
+
+      const resData = await response.json();
+      if (!resData.success) {
+        throw new Error(resData.error || 'Gagal menyimpan alamat dropship');
+      }
+
+      const savedAddr: Address = resData.data;
+
+      // Update local address list so preview and list reflect immediately
+      if (saveDropshipMode === 'create_new') {
+        setAddresses(prev => [savedAddr, ...prev.filter(a => a.address_id !== savedAddr.address_id)]);
+        setSelectedIds(prev => [savedAddr.address_id, ...prev.filter(id => id !== addr.address_id)]);
+      } else {
+        setAddresses(prev => prev.map(a => a.address_id === savedAddr.address_id ? savedAddr : a));
+      }
+
+      setSavedDropshipIds(prev => new Set(prev).add(savedAddr.address_id).add(addr.address_id));
+      setDropshipSaveSuccessMsg(`✓ Alamat dropship "${savedAddr.recipient_name}" & Pengirim "${savedAddr.dropship_sender_name}" berhasil disimpan di Multi-Alamat (${savedAddr.customer_id}) tanpa logo toko dan siap cetak!`);
+
+      // Broadcast events so customer list & detail modals refresh immediately
+      window.dispatchEvent(new CustomEvent('addresses-updated'));
+      window.dispatchEvent(new CustomEvent('groups-updated'));
+      if (onPrintSuccess) onPrintSuccess();
+      return savedAddr;
+    } catch (err: any) {
+      if (!quiet) alert('Gagal menyimpan alamat dropship: ' + err.message);
+      return null;
+    } finally {
+      setIsSavingDropship(false);
+    }
+  };
+
   // EXECUTE BULLETPROOF PRINTING - Opens dedicated print window immediately
   const handleExecutePrint = async () => {
     if (printItems.length === 0) {
@@ -360,6 +494,18 @@ export const PrintPageView: React.FC<PrintPageViewProps> = ({
     setPrintSuccessNotice(null);
 
     try {
+      // Auto-save dropship if enabled and sender info is filled
+      if (isDropshipMode && autoSaveDropshipOnPrint && dropshipSenderName.trim() && dropshipSenderPhone.trim()) {
+        const unsaved = selectedAddresses.find(a => !savedDropshipIds.has(a.address_id));
+        if (unsaved) {
+          try {
+            await handleSaveDropshipAddress(unsaved, true);
+          } catch (e) {
+            console.warn('Auto-save dropship on print:', e);
+          }
+        }
+      }
+
       // 1. Immediately open new browser window to print labels
       const printResult = openPrintWindow({
         addressIds: selectedIds,
@@ -660,6 +806,110 @@ export const PrintPageView: React.FC<PrintPageViewProps> = ({
                   </div>
                 </div>
 
+                {/* SECTION: SIMPAN ALAMAT DROPSHIP KE MULTI-ALAMAT */}
+                <div className="p-3.5 bg-white rounded-xl border border-purple-300/90 space-y-3 shadow-2xs">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <BookmarkPlus className="w-4 h-4 text-purple-700 shrink-0" />
+                      <span className="text-xs font-black text-purple-950">
+                        Simpan Alamat Dropship
+                      </span>
+                    </div>
+                    <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-purple-100 text-purple-750 border border-purple-200">
+                      Label: Dropship
+                    </span>
+                  </div>
+
+                  <p className="text-[11px] text-slate-600 leading-snug">
+                    Simpan alamat penerima ini ke multi-alamat pelanggan dengan label <strong className="text-purple-900 font-bold">Dropship</strong> dan otomatis disinkronkan ke Google Spreadsheet.
+                  </p>
+
+                  {/* Target Info */}
+                  {selectedAddresses.length > 1 && (
+                    <div className="text-[10px] text-purple-900 bg-purple-50 p-2 rounded-lg border border-purple-200">
+                      Target Alamat: <strong className="font-bold">{selectedAddresses[0]?.recipient_name}</strong> ({selectedAddresses[0]?.city})
+                    </div>
+                  )}
+
+                  {/* Mode Pilihan Simpan */}
+                  <div className="grid grid-cols-2 gap-2 text-xs">
+                    <button
+                      type="button"
+                      onClick={() => setSaveDropshipMode('create_new')}
+                      className={`p-2.5 rounded-xl border text-left transition-all ${
+                        saveDropshipMode === 'create_new'
+                          ? 'border-purple-600 bg-purple-50 text-purple-950 font-bold ring-1 ring-purple-600/20'
+                          : 'border-slate-200 bg-slate-50/50 hover:bg-slate-100 text-slate-600'
+                      }`}
+                    >
+                      <div className="flex items-center justify-between">
+                        <span>Alamat Baru</span>
+                        {saveDropshipMode === 'create_new' && <span className="w-1.5 h-1.5 rounded-full bg-purple-600"></span>}
+                      </div>
+                      <span className="text-[10px] text-slate-500 font-normal block mt-0.5 leading-tight">
+                        Tambah alamat baru di multi-alamat
+                      </span>
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => setSaveDropshipMode('update_existing')}
+                      className={`p-2.5 rounded-xl border text-left transition-all ${
+                        saveDropshipMode === 'update_existing'
+                          ? 'border-purple-600 bg-purple-50 text-purple-950 font-bold ring-1 ring-purple-600/20'
+                          : 'border-slate-200 bg-slate-50/50 hover:bg-slate-100 text-slate-600'
+                      }`}
+                    >
+                      <div className="flex items-center justify-between">
+                        <span>Ubah Label Ini</span>
+                        {saveDropshipMode === 'update_existing' && <span className="w-1.5 h-1.5 rounded-full bg-purple-600"></span>}
+                      </div>
+                      <span className="text-[10px] text-slate-500 font-normal block mt-0.5 leading-tight">
+                        Ganti label alamat ini jadi Dropship
+                      </span>
+                    </button>
+                  </div>
+
+                  {/* Tombol Simpan Alamat Dropship */}
+                  <button
+                    type="button"
+                    onClick={() => handleSaveDropshipAddress()}
+                    disabled={isSavingDropship || !dropshipSenderName.trim() || !dropshipSenderPhone.trim()}
+                    className="w-full py-2.5 px-3 rounded-xl bg-purple-700 hover:bg-purple-800 active:scale-[0.99] text-white text-xs font-bold transition-all shadow-sm flex items-center justify-center gap-2 disabled:opacity-50"
+                  >
+                    {isSavingDropship ? (
+                      <>
+                        <Loader2 className="w-4 h-4 animate-spin" />
+                        <span>Menyimpan & Sinkron ke Spreadsheet...</span>
+                      </>
+                    ) : (
+                      <>
+                        <Save className="w-4 h-4" />
+                        <span>💾 Simpan Alamat Dropship ke Multi-Alamat</span>
+                      </>
+                    )}
+                  </button>
+
+                  {/* Auto-save toggle checkbox */}
+                  <label className="flex items-center gap-2 cursor-pointer pt-1 border-t border-purple-100 text-[11px] text-slate-700">
+                    <input
+                      type="checkbox"
+                      checked={autoSaveDropshipOnPrint}
+                      onChange={e => setAutoSaveDropshipOnPrint(e.target.checked)}
+                      className="w-3.5 h-3.5 rounded text-purple-600 focus:ring-purple-500 border-purple-300"
+                    />
+                    <span>Otomatis simpan ke multi-alamat & Spreadsheet saat klik <strong>Cetak Label</strong></span>
+                  </label>
+
+                  {/* Notifikasi Sukses Simpan */}
+                  {dropshipSaveSuccessMsg && (
+                    <div className="p-2.5 bg-emerald-50 border border-emerald-200 rounded-lg text-emerald-850 text-xs flex items-start gap-2 animate-fadeIn">
+                      <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" />
+                      <span className="leading-snug">{dropshipSaveSuccessMsg}</span>
+                    </div>
+                  )}
+                </div>
+
                 <p className="text-[10px] text-purple-800 bg-purple-100/60 p-2 rounded-lg leading-relaxed">
                   💡 <strong>Catatan:</strong> Saat mode dropship aktif, logo Yaxiya Jewelry otomatis disembunyikan dan diganti dengan nama pengirim dropship Anda agar aman bagi reseller.
                 </p>
@@ -844,7 +1094,9 @@ export const PrintPageView: React.FC<PrintPageViewProps> = ({
           ) : format === 'thermal_100x150' ? (
             /* THERMAL 100x150 MM PORTRAIT PREVIEW */
             <div className="w-full max-w-[340px] space-y-6">
-              {printItems.map((item, idx) => (
+              {printItems.map((item, idx) => {
+                const { itemIsDropship, senderName, senderPhone, senderAddress } = getItemSenderInfo(item);
+                return (
                 <div
                   key={`thermal-view-${item.address_id}-${idx}`}
                   className="bg-white rounded-xl shadow-xl border-2 border-black p-4 relative overflow-hidden font-sans text-black flex flex-col justify-between"
@@ -854,9 +1106,9 @@ export const PrintPageView: React.FC<PrintPageViewProps> = ({
                   }}
                 >
                   <div>
-                    {/* HEADER ATAS: PENGIRIM (Logo di kiri, Detail Pengirim di sampingnya. DROPSHIP = LOGO OTOMATIS HILANG) */}
+                    {/* HEADER ATAS: PENGIRIM (DROPSHIP = LOGO DAN NAMA TOKO BAWAAN OTOMATIS HILANG) */}
                     <div className="flex items-center pb-3 border-b-2 border-black gap-3">
-                      {!isDropshipMode && storeSettings.show_logo_on_print && storeSettings.logo_mode !== 'none' ? (
+                      {!itemIsDropship && storeSettings.show_logo_on_print && storeSettings.logo_mode !== 'none' ? (
                         <div className="shrink-0 flex items-center justify-center">
                           {(storeSettings.logo_mode === 'custom' || storeSettings.custom_logo_url) && storeSettings.custom_logo_url ? (
                             <img
@@ -876,18 +1128,25 @@ export const PrintPageView: React.FC<PrintPageViewProps> = ({
                       ) : null}
 
                       <div className="min-w-0 flex-1 leading-tight">
-                        <span className="text-[9px] font-extrabold uppercase text-slate-600 tracking-wider block">
-                          PENGIRIM:
-                        </span>
+                        <div className="flex items-center justify-between gap-1">
+                          <span className="text-[9px] font-extrabold uppercase text-slate-600 tracking-wider block">
+                            PENGIRIM:
+                          </span>
+                          {itemIsDropship && (
+                            <span className="text-[9px] font-bold px-1.5 py-0.2 rounded bg-purple-100 text-purple-800">
+                              DROPSHIP · SIAP CETAK
+                            </span>
+                          )}
+                        </div>
                         <div className="font-display font-black text-sm uppercase truncate text-black">
-                          {effectiveSenderName}
+                          {senderName}
                         </div>
                         <div className="font-mono font-bold text-xs text-black mt-0.5">
-                          {effectiveSenderPhone}
+                          {senderPhone}
                         </div>
-                        {effectiveSenderAddress && (
+                        {senderAddress && (
                           <div className="text-[10px] text-slate-600 line-clamp-1 mt-0.5">
-                            {effectiveSenderAddress}
+                            {senderAddress}
                           </div>
                         )}
                       </div>
@@ -948,7 +1207,8 @@ export const PrintPageView: React.FC<PrintPageViewProps> = ({
                     Tgl Cetak: {currentPrintDate}
                   </div>
                 </div>
-              ))}
+                );
+              })}
             </div>
           ) : (
             /* HVS A4 21 x 29.7 CM PREVIEW */
@@ -998,6 +1258,7 @@ export const PrintPageView: React.FC<PrintPageViewProps> = ({
                     );
                   }
 
+                  const { itemIsDropship, senderName, senderPhone, senderAddress } = getItemSenderInfo(item);
                   return (
                     <div
                       key={`hvs-view-slot-${slotIdx}`}
@@ -1008,7 +1269,7 @@ export const PrintPageView: React.FC<PrintPageViewProps> = ({
                         {/* Header Atas: Pengirim */}
                         <div className="flex items-center justify-between pb-1.5 border-b border-black">
                           <div className="flex items-center gap-2">
-                            {!isDropshipMode && storeSettings.show_logo_on_print && storeSettings.logo_mode !== 'none' ? (
+                            {!itemIsDropship && storeSettings.show_logo_on_print && storeSettings.logo_mode !== 'none' ? (
                               <div className="shrink-0 flex items-center justify-center">
                                 {(storeSettings.logo_mode === 'custom' || storeSettings.custom_logo_url) && storeSettings.custom_logo_url ? (
                                   <img
@@ -1022,8 +1283,11 @@ export const PrintPageView: React.FC<PrintPageViewProps> = ({
                                 )}
                               </div>
                             ) : null}
-                            <div className="text-[10px] font-black uppercase">
-                              PENGIRIM: {effectiveSenderName} ({effectiveSenderPhone})
+                            <div>
+                              <span className="text-[7pt] font-extrabold text-slate-600">PENGIRIM: </span>
+                              <strong className="text-[10px] font-black uppercase text-black">{senderName}</strong>
+                              {senderPhone && <span className="font-mono font-bold text-[9px] ml-1">({senderPhone})</span>}
+                              {itemIsDropship && <span className="ml-1 text-[8px] font-bold px-1 rounded bg-purple-100 text-purple-800">[DROPSHIP]</span>}
                             </div>
                           </div>
                           {showCustomerId && (

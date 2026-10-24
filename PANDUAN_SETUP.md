@@ -49,7 +49,7 @@ GOOGLE_SERVICE_ACCOUNT_PRIVATE_KEY="-----BEGIN PRIVATE KEY-----\nMIIEvgIBADANBgk
 
 Backend secara otomatis memeriksa dan membuat sheet jika belum ada di spreadsheet:
 1. `PELANGGAN`: customer_id, customer_name, primary_phone, notes, created_at, updated_at, status
-2. `ALAMAT_PENGIRIMAN`: address_id, customer_id, address_label, recipient_name, recipient_phone, full_address, village, district, city, province, postal_code, shipping_courier, shipping_service, shipping_notes, created_at, updated_at, status
+2. `ALAMAT_PENGIRIMAN`: address_id, customer_id, address_label, group_name, recipient_name, recipient_phone, full_address, village, district, city, province, postal_code, shipping_courier, shipping_service, shipping_notes, is_dropship, dropship_sender_name, dropship_sender_phone, dropship_sender_city, created_at, updated_at, status
 3. `JASA_KIRIM`: courier_id, courier_name, courier_category, services, is_favorite, is_active, created_at, updated_at
 4. `RIWAYAT_CETAK`: print_id, customer_id, address_id, recipient_name, shipping_courier, label_format, copies, printed_at
 5. `LOG_SINKRONISASI`: sync_id, entity_type, entity_id, operation, sync_status, error_message, created_at, synced_at

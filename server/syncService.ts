@@ -130,6 +130,37 @@ class SyncService {
             a.group_name = g.toUpperCase();
             remoteGroupsFound.add(a.group_name);
           }
+
+          // Read dedicated dropship fields
+          const isDrop = a.is_dropship === true || 
+            String(a.is_dropship).toUpperCase() === 'YA' || 
+            String(a.is_dropship).toUpperCase() === 'TRUE' || 
+            a.address_label === 'Dropship' || 
+            Boolean(a.dropship_sender_name && String(a.dropship_sender_name).trim().length > 0);
+          a.is_dropship = isDrop;
+          if (a.dropship_sender_name) a.dropship_sender_name = String(a.dropship_sender_name).trim();
+          if (a.dropship_sender_phone) a.dropship_sender_phone = String(a.dropship_sender_phone).trim();
+          if (a.dropship_sender_city) a.dropship_sender_city = String(a.dropship_sender_city).trim();
+
+          // If legacy shipping notes contained embedded Dropship info, recover it if dedicated fields were empty
+          if (!a.dropship_sender_name && a.shipping_notes && a.shipping_notes.includes('Dropship:')) {
+            const match = a.shipping_notes.match(/Dropship:\s*([^(|]+)(?:\(([^)]*)\))?(?:\s*-\s*Asal:\s*([^;,\n|]+))?/i);
+            if (match) {
+              a.is_dropship = true;
+              if (match[1]) a.dropship_sender_name = match[1].trim();
+              if (match[2]) a.dropship_sender_phone = match[2].trim();
+              if (match[3]) a.dropship_sender_city = match[3].trim();
+            }
+          }
+
+          // Keep shipping_notes completely pure and independent for custom shipping notes
+          if (a.shipping_notes && a.shipping_notes.includes('Dropship:')) {
+            a.shipping_notes = a.shipping_notes
+              .replace(/\|\s*Dropship:\s*[^|]+/i, '')
+              .replace(/Dropship:\s*[^|]+\|\s*/i, '')
+              .replace(/Dropship:\s*[^(]+(?:\([^)]*\))?(?:\s*-\s*Asal:\s*[^;,\n]+)?/i, '')
+              .trim();
+          }
         }
       }
       if (remoteGroupsFound.size > 0) {
@@ -584,6 +615,7 @@ class SyncService {
     } 
     else if (task.entity_type === 'ALAMAT_PENGIRIMAN') {
       const a = payload;
+      const isDrop = (a.is_dropship || a.address_label === 'Dropship' || (a.dropship_sender_name && String(a.dropship_sender_name).trim().length > 0)) ? 'YA' : 'TIDAK';
       const row = [
         a.address_id,
         a.customer_id,
@@ -600,6 +632,10 @@ class SyncService {
         a.shipping_courier || '',
         a.shipping_service || '',
         a.shipping_notes || '',
+        isDrop,
+        a.dropship_sender_name || '',
+        a.dropship_sender_phone || '',
+        a.dropship_sender_city || '',
         a.created_at,
         a.updated_at,
         a.status

@@ -68,7 +68,7 @@ export const CustomerDetailModal: React.FC<CustomerDetailModalProps> = ({
       setSelectedAddressIds([]);
     }
 
-    const onGroupsUpdated = () => {
+    const onRefreshData = () => {
       if (isOpen && customerId) {
         fetch(`/api/customers/${customerId}`)
           .then(res => res.json())
@@ -81,8 +81,12 @@ export const CustomerDetailModal: React.FC<CustomerDetailModalProps> = ({
           .catch(() => {});
       }
     };
-    window.addEventListener('groups-updated', onGroupsUpdated);
-    return () => window.removeEventListener('groups-updated', onGroupsUpdated);
+    window.addEventListener('groups-updated', onRefreshData);
+    window.addEventListener('addresses-updated', onRefreshData);
+    return () => {
+      window.removeEventListener('groups-updated', onRefreshData);
+      window.removeEventListener('addresses-updated', onRefreshData);
+    };
   }, [isOpen, customerId, refreshTrigger]);
 
   if (!isOpen || !customerId) return null;
@@ -284,7 +288,7 @@ export const CustomerDetailModal: React.FC<CustomerDetailModalProps> = ({
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5">
                     {addresses.map(addr => {
                       const isSelected = selectedAddressIds.includes(addr.address_id);
-                      const isDropship = addr.recipient_name.toLowerCase() !== customer.customer_name.toLowerCase();
+                      const isDropship = addr.is_dropship || Boolean(addr.dropship_sender_name && addr.dropship_sender_name.trim()) || addr.address_label === 'Dropship' || addr.recipient_name.toLowerCase() !== customer.customer_name.toLowerCase();
 
                       return (
                         <div
@@ -353,6 +357,22 @@ export const CustomerDetailModal: React.FC<CustomerDetailModalProps> = ({
                                 <p className="text-[11px] text-amber-800 bg-amber-50/80 p-1.5 rounded border border-amber-200/50 mt-1">
                                   <strong>Catatan:</strong> {addr.shipping_notes}
                                 </p>
+                              )}
+                              {addr.dropship_sender_name && (
+                                <div className="mt-2 p-2 rounded-lg bg-purple-50 border border-purple-200 text-[11px] text-purple-950 flex items-center justify-between">
+                                  <div className="flex items-center gap-1.5">
+                                    <span className="font-extrabold text-[9px] px-1 py-0.2 rounded bg-purple-200 text-purple-800 uppercase tracking-wider">
+                                      Pengirim Dropship:
+                                    </span>
+                                    <span className="font-bold text-purple-900">{addr.dropship_sender_name}</span>
+                                    {addr.dropship_sender_phone && (
+                                      <span className="font-mono text-purple-700">({addr.dropship_sender_phone})</span>
+                                    )}
+                                  </div>
+                                  <span className="text-[9px] font-bold text-emerald-700 bg-emerald-100/80 px-1.5 py-0.2 rounded">
+                                    Siap Cetak (Tanpa Logo)
+                                  </span>
+                                </div>
                               )}
                             </div>
                           </div>

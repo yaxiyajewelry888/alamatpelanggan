@@ -195,7 +195,11 @@ export const CustomerListView: React.FC<CustomerListViewProps> = ({
       fetchCustomers();
     };
     window.addEventListener('groups-updated', onGroupsUpdated);
-    return () => window.removeEventListener('groups-updated', onGroupsUpdated);
+    window.addEventListener('addresses-updated', onGroupsUpdated);
+    return () => {
+      window.removeEventListener('groups-updated', onGroupsUpdated);
+      window.removeEventListener('addresses-updated', onGroupsUpdated);
+    };
   }, [refreshTrigger]);
 
   const fetchCustomers = async () => {

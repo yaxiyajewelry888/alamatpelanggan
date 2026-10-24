@@ -448,6 +448,134 @@ apiRouter.post('/addresses', async (req: Request, res: Response) => {
   }
 });
 
+// --- SAVE DROPSHIP ADDRESS TO MULTI-ADDRESS & SPREADSHEET ---
+apiRouter.post('/addresses/save-dropship', async (req: Request, res: Response) => {
+  try {
+    const {
+      address_id,
+      customer_id,
+      recipient_name,
+      recipient_phone,
+      full_address,
+      village,
+      district,
+      city,
+      province,
+      postal_code,
+      shipping_courier,
+      shipping_service,
+      shipping_notes,
+      dropship_sender_name,
+      dropship_sender_phone,
+      dropship_sender_city,
+      mode = 'create_new' // 'update_existing' | 'create_new'
+    } = req.body;
+
+    if (!customer_id) {
+      return res.status(400).json({ success: false, error: 'ID Pelanggan wajib diisi.' });
+    }
+
+    const customer = db.getCustomerById(customer_id);
+    if (!customer) {
+      return res.status(404).json({ success: false, error: `Pelanggan ${customer_id} tidak ditemukan.` });
+    }
+
+    // Keep shipping_notes completely pure and independent for custom shipping notes
+    let pureShippingNotes = (shipping_notes || '').trim();
+    if (pureShippingNotes.includes('Dropship:')) {
+      pureShippingNotes = pureShippingNotes
+        .replace(/\|\s*Dropship:\s*[^|]+/i, '')
+        .replace(/Dropship:\s*[^|]+\|\s*/i, '')
+        .replace(/Dropship:\s*[^(]+(?:\([^)]*\))?(?:\s*-\s*Asal:\s*[^;,\n]+)?/i, '')
+        .trim();
+    }
+
+    let savedAddress: Address;
+
+    const senderNameClean = (dropship_sender_name || '').trim();
+    const senderPhoneClean = (dropship_sender_phone || '').trim();
+    const senderCityClean = (dropship_sender_city || '').trim();
+
+    if (mode === 'update_existing' && address_id) {
+      const existing = db.getAddressById(address_id);
+      if (existing) {
+        savedAddress = db.updateAddress(address_id, {
+          address_label: 'Dropship',
+          is_dropship: true,
+          dropship_sender_name: senderNameClean || existing.dropship_sender_name || '',
+          dropship_sender_phone: senderPhoneClean || existing.dropship_sender_phone || '',
+          dropship_sender_city: senderCityClean || existing.dropship_sender_city || '',
+          recipient_name: recipient_name?.trim() || existing.recipient_name,
+          recipient_phone: recipient_phone?.trim() || existing.recipient_phone,
+          full_address: full_address?.trim() || existing.full_address,
+          village: village !== undefined ? village.trim() : existing.village,
+          district: district !== undefined ? district.trim() : existing.district,
+          city: city?.trim() || existing.city,
+          province: province !== undefined ? province.trim() : existing.province,
+          postal_code: postal_code !== undefined ? postal_code.trim() : existing.postal_code,
+          shipping_courier: shipping_courier?.trim() || existing.shipping_courier,
+          shipping_service: shipping_service?.trim() || existing.shipping_service,
+          shipping_notes: pureShippingNotes
+        });
+      } else {
+        savedAddress = db.createAddress({
+          customer_id,
+          address_label: 'Dropship',
+          is_dropship: true,
+          dropship_sender_name: senderNameClean,
+          dropship_sender_phone: senderPhoneClean,
+          dropship_sender_city: senderCityClean,
+          recipient_name: recipient_name?.trim() || customer.customer_name,
+          recipient_phone: recipient_phone?.trim() || customer.primary_phone,
+          full_address: full_address?.trim() || 'Alamat Dropship',
+          village: village?.trim() || '',
+          district: district?.trim() || '',
+          city: city?.trim() || 'Jakarta Barat',
+          province: province?.trim() || 'DKI Jakarta',
+          postal_code: postal_code?.trim() || '',
+          shipping_courier: shipping_courier?.trim() || 'JNE',
+          shipping_service: shipping_service?.trim() || 'Reguler',
+          shipping_notes: pureShippingNotes,
+          group_name: customer.group_name || ''
+        });
+      }
+    } else {
+      // Create new address with address_label: 'Dropship'
+      savedAddress = db.createAddress({
+        customer_id,
+        address_label: 'Dropship',
+        is_dropship: true,
+        dropship_sender_name: senderNameClean,
+        dropship_sender_phone: senderPhoneClean,
+        dropship_sender_city: senderCityClean,
+        recipient_name: recipient_name?.trim() || customer.customer_name,
+        recipient_phone: recipient_phone?.trim() || customer.primary_phone,
+        full_address: full_address?.trim() || 'Alamat Dropship',
+        village: village?.trim() || '',
+        district: district?.trim() || '',
+        city: city?.trim() || 'Jakarta Barat',
+        province: province?.trim() || 'DKI Jakarta',
+        postal_code: postal_code?.trim() || '',
+        shipping_courier: shipping_courier?.trim() || 'JNE',
+        shipping_service: shipping_service?.trim() || 'Reguler',
+        shipping_notes: pureShippingNotes,
+        group_name: customer.group_name || ''
+      });
+    }
+
+    // Direct synchronous push to Google Spreadsheet
+    await syncService.syncAddressToSpreadsheet(savedAddress);
+
+    res.json({
+      success: true,
+      message: `Alamat dropship (Pengirim: "${savedAddress.dropship_sender_name || 'Dropship'}", Penerima: "${savedAddress.recipient_name}") berhasil disimpan di multi-alamat ${customer.customer_name} (${customer.customer_id}) dan disinkronkan ke Spreadsheet! Siap dicetak langsung tanpa logo dan nama toko bawaan.`,
+      data: savedAddress
+    });
+  } catch (err: any) {
+    res.status(400).json({ success: false, error: err.message });
+  }
+});
+
 apiRouter.post('/addresses/quick-bulk', async (req: Request, res: Response) => {
   try {
     const { items } = req.body;
@@ -695,11 +823,26 @@ apiRouter.get('/print-page', (req: Request, res: Response) => {
       } catch {}
     }
 
-    const effectiveSenderName = isDropship && dropshipName.trim() ? dropshipName.trim() : settings.store_name;
-    const effectiveSenderPhone = isDropship && dropshipPhone.trim() ? dropshipPhone.trim() : settings.phone;
-    const effectiveSenderAddress = isDropship 
-      ? (dropshipCity.trim() ? `Pengiriman dari: ${dropshipCity.trim()}` : '') 
-      : `${settings.address}, ${settings.city}`;
+    const getItemSenderDetails = (item: Address) => {
+      const itemIsDropship = isDropship || Boolean(item.is_dropship) || Boolean(item.dropship_sender_name && item.dropship_sender_name.trim()) || item.address_label === 'Dropship';
+      const senderName = itemIsDropship
+        ? (item.dropship_sender_name?.trim() || dropshipName.trim() || 'PENGIRIM DROPSHIP')
+        : settings.store_name;
+      const senderPhone = itemIsDropship
+        ? (item.dropship_sender_phone?.trim() || dropshipPhone.trim() || '')
+        : settings.phone;
+      const dropshipCityStr = (item.dropship_sender_city?.trim() || dropshipCity.trim() || '');
+      const senderAddress = itemIsDropship
+        ? (dropshipCityStr ? `Pengiriman dari: ${dropshipCityStr}` : '')
+        : `${settings.address}, ${settings.city}`;
+
+      return {
+        itemIsDropship,
+        senderName,
+        senderPhone,
+        senderAddress
+      };
+    };
 
     const now = new Date();
     const day = String(now.getDate()).padStart(2, '0');
@@ -713,13 +856,15 @@ apiRouter.get('/print-page', (req: Request, res: Response) => {
     let labelsHtml = '';
 
     if (format === 'thermal_100x150') {
-      labelsHtml = printItems.map((item, idx) => `
+      labelsHtml = printItems.map((item, idx) => {
+        const { itemIsDropship, senderName, senderPhone, senderAddress } = getItemSenderDetails(item);
+        return `
         <div class="thermal-card page-break" style="width: 100mm; height: 148mm; padding: 4.5mm; box-sizing: border-box; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; color: #000; background: #fff; display: flex; flex-direction: column; justify-content: space-between; border: 2px solid #000; margin: 0 auto;">
           <div>
-            <!-- HEADER ATAS: PENGIRIM (Logo di kiri, Detail di sampingnya. DROPSHIP = LOGO OTOMATIS HILANG) -->
+            <!-- HEADER ATAS: PENGIRIM (DROPSHIP = LOGO DAN NAMA TOKO BAWAAN OTOMATIS HILANG) -->
             <div style="display: flex; align-items: center; justify-content: space-between; border-bottom: 2.5px solid #000; padding-bottom: 3mm; gap: 3mm;">
               <div style="display: flex; align-items: center; gap: 3mm; min-width: 0;">
-                ${!isDropship && settings.show_logo_on_print && settings.logo_mode !== 'none' ? `
+                ${!itemIsDropship && settings.show_logo_on_print && settings.logo_mode !== 'none' ? `
                   <div style="flex-shrink: 0; display: flex; align-items: center;">
                     ${(settings.logo_mode === 'custom' || settings.custom_logo_url) && settings.custom_logo_url ? `
                       <img src="${settings.custom_logo_url}" alt="Logo Toko" style="max-height: 12mm; max-width: 25mm; object-fit: contain; display: block;" onerror="this.style.display='none'" />
@@ -730,9 +875,9 @@ apiRouter.get('/print-page', (req: Request, res: Response) => {
                 ` : ''}
                 <div style="min-width: 0; line-height: 1.25;">
                   <div style="font-size: 7.5pt; font-weight: 800; color: #444; text-transform: uppercase; letter-spacing: 0.5px;">PENGIRIM:</div>
-                  <div style="font-weight: 900; font-size: 11pt; text-transform: uppercase; word-wrap: break-word;">${effectiveSenderName}</div>
-                  <div style="font-family: monospace; font-size: 9pt; font-weight: 800;">${effectiveSenderPhone}</div>
-                  ${effectiveSenderAddress ? `<div style="font-size: 7.5pt; color: #333; margin-top: 1px; word-wrap: break-word;">${effectiveSenderAddress}</div>` : ''}
+                  <div style="font-weight: 900; font-size: 11pt; text-transform: uppercase; word-wrap: break-word;">${senderName}</div>
+                  <div style="font-family: monospace; font-size: 9pt; font-weight: 800;">${senderPhone}</div>
+                  ${senderAddress ? `<div style="font-size: 7.5pt; color: #333; margin-top: 1px; word-wrap: break-word;">${senderAddress}</div>` : ''}
                 </div>
               </div>
             </div>
@@ -785,16 +930,19 @@ apiRouter.get('/print-page', (req: Request, res: Response) => {
             Tgl Cetak: ${printDate}
           </div>
         </div>
-      `).join('');
+      `;
+      }).join('');
     } else {
       // HVS A4 (3 Bagian per Lembar)
-      const renderA4ItemHtml = (item: Address, slotIdx: number, modeLabel: string) => `
+      const renderA4ItemHtml = (item: Address, slotIdx: number, modeLabel: string) => {
+        const { itemIsDropship, senderName, senderPhone, senderAddress } = getItemSenderDetails(item);
+        return `
         <div style="height: 91mm; border: 1.5px dashed #000; padding: 3mm 4mm; box-sizing: border-box; display: flex; flex-direction: column; justify-content: space-between; margin-bottom: 2mm; position: relative;">
           <div>
-            <!-- HEADER ATAS: PENGIRIM -->
+            <!-- HEADER ATAS: PENGIRIM (DROPSHIP = LOGO DAN NAMA TOKO BAWAAN OTOMATIS HILANG) -->
             <div style="display: flex; align-items: center; justify-content: space-between; border-bottom: 1.5px solid #000; padding-bottom: 1.5mm;">
               <div style="display: flex; align-items: center; gap: 2.5mm;">
-                ${!isDropship && settings.show_logo_on_print && settings.logo_mode !== 'none' ? `
+                ${!itemIsDropship && settings.show_logo_on_print && settings.logo_mode !== 'none' ? `
                   <div style="flex-shrink: 0; display: inline-flex; align-items: center;">
                     ${(settings.logo_mode === 'custom' || settings.custom_logo_url) && settings.custom_logo_url ? `
                       <img src="${settings.custom_logo_url}" alt="Logo Toko" style="max-height: 9mm; max-width: 22mm; object-fit: contain; display: block;" onerror="this.style.display='none'" />
@@ -805,8 +953,9 @@ apiRouter.get('/print-page', (req: Request, res: Response) => {
                 ` : ''}
                 <div>
                   <span style="font-size: 7pt; font-weight: 800; color: #444;">PENGIRIM: </span>
-                  <strong style="font-size: 9.5pt; text-transform: uppercase;">${effectiveSenderName}</strong>
-                  <span style="font-family: monospace; font-size: 8pt; font-weight: 800; margin-left: 2mm;">(${effectiveSenderPhone})</span>
+                  <strong style="font-size: 9.5pt; text-transform: uppercase;">${senderName}</strong>
+                  ${senderPhone ? `<span style="font-family: monospace; font-size: 8pt; font-weight: 800; margin-left: 2mm;">(${senderPhone})</span>` : ''}
+                  ${senderAddress ? `<span style="font-size: 7pt; color: #555; margin-left: 2mm;">[${senderAddress}]</span>` : ''}
                 </div>
               </div>
               ${showId ? `<div style="font-family: monospace; font-size: 7.5pt; font-weight: 800;">ID: ${item.customer_id}</div>` : ''}
@@ -845,6 +994,7 @@ apiRouter.get('/print-page', (req: Request, res: Response) => {
           </div>
         </div>
       `;
+      };
 
       const renderEmptySlotHtml = (slotIdx: number) => `
         <div style="height: 91mm; border: 1px dotted #ccc; background: #fafafa; margin-bottom: 2mm; box-sizing: border-box; display: flex; align-items: center; justify-content: center; color: #999; font-size: 8pt; font-family: monospace;">
@@ -889,11 +1039,13 @@ apiRouter.get('/print-page', (req: Request, res: Response) => {
       }
     }
 
+    const pageTitle = isDropship && dropshipName.trim() ? dropshipName.trim() : settings.store_name;
+
     const fullHtml = `<!DOCTYPE html>
 <html lang="id">
 <head>
   <meta charset="UTF-8">
-  <title>Cetak Label - ${effectiveSenderName}</title>
+  <title>Cetak Label - ${pageTitle}</title>
   <style>
     @page {
       size: ${format === 'thermal_100x150' ? '100mm 150mm' : '210mm 297mm'};
@@ -1272,6 +1424,10 @@ apiRouter.get('/export', (req: Request, res: Response) => {
           'Jasa Kirim': a.shipping_courier,
           'Layanan': a.shipping_service,
           'Catatan Pengiriman': a.shipping_notes,
+          'Dropship': (a.is_dropship || a.address_label === 'Dropship' || (a.dropship_sender_name && a.dropship_sender_name.trim().length > 0)) ? 'YA' : 'TIDAK',
+          'Nama Pengirim Dropship': a.dropship_sender_name || '',
+          'No. HP Pengirim Dropship': a.dropship_sender_phone || '',
+          'Kota Pengirim Dropship': a.dropship_sender_city || '',
           'Tanggal Dibuat': a.created_at,
           'Status': a.status
         };

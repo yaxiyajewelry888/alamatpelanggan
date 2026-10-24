@@ -17,7 +17,10 @@ import {
   ExternalLink,
   Truck,
   Eye,
-  Tag
+  Tag,
+  BookmarkPlus,
+  Save,
+  Loader2
 } from 'lucide-react';
 import { YaxiyaLogo } from '../utils/logo';
 import { openPrintWindow } from '../utils/printHelper';
@@ -62,6 +65,8 @@ export const BulkPrintModal: React.FC<BulkPrintModalProps> = ({
   const [dropshipSenderName, setDropshipSenderName] = useState<string>('');
   const [dropshipSenderPhone, setDropshipSenderPhone] = useState<string>('');
   const [dropshipSenderCity, setDropshipSenderCity] = useState<string>('');
+  const [isSavingDropship, setIsSavingDropship] = useState<boolean>(false);
+  const [dropshipSuccessNotice, setDropshipSuccessNotice] = useState<string | null>(null);
 
   const [isPrinting, setIsPrinting] = useState<boolean>(false);
   const [notice, setNotice] = useState<string | null>(null);
@@ -179,7 +184,29 @@ export const BulkPrintModal: React.FC<BulkPrintModalProps> = ({
     }
   });
 
-  // Effective sender details
+  // Helper for computing sender info per item (Dropship suppresses logo and default store name)
+  const getItemSenderInfo = (item: Address) => {
+    const itemIsDropship = isDropshipMode || Boolean(item.is_dropship) || Boolean(item.dropship_sender_name && item.dropship_sender_name.trim()) || item.address_label === 'Dropship';
+    const senderName = itemIsDropship
+      ? (dropshipSenderName.trim() || item.dropship_sender_name?.trim() || 'PENGIRIM DROPSHIP')
+      : storeSettings.store_name;
+    const senderPhone = itemIsDropship
+      ? (dropshipSenderPhone.trim() || item.dropship_sender_phone?.trim() || '')
+      : storeSettings.phone;
+    const itemCity = (dropshipSenderCity.trim() || item.dropship_sender_city?.trim() || '');
+    const senderAddress = itemIsDropship
+      ? (itemCity ? `Pengiriman dari: ${itemCity}` : '')
+      : `${storeSettings.address}, ${storeSettings.city}`;
+
+    return {
+      itemIsDropship,
+      senderName,
+      senderPhone,
+      senderAddress
+    };
+  };
+
+  // Effective sender details (fallback)
   const effectiveSenderName = isDropshipMode && dropshipSenderName.trim()
     ? dropshipSenderName.trim()
     : storeSettings.store_name;
@@ -226,13 +253,15 @@ export const BulkPrintModal: React.FC<BulkPrintModalProps> = ({
     const isThermal = format === 'thermal_100x150';
 
     if (isThermal) {
-      return printItems.map((item) => `
+      return printItems.map((item) => {
+        const { itemIsDropship, senderName, senderPhone, senderAddress } = getItemSenderInfo(item);
+        return `
         <div class="thermal-card page-break" style="width: 100mm; height: 148mm; padding: 4.5mm; box-sizing: border-box; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; color: #000; background: #fff; display: flex; flex-direction: column; justify-content: space-between; border: 2.5px solid #000; margin: 0 auto; page-break-after: always; break-after: page;">
           <div>
-            <!-- HEADER ATAS: PENGIRIM -->
+            <!-- HEADER ATAS: PENGIRIM (DROPSHIP = LOGO DAN NAMA TOKO BAWAAN OTOMATIS HILANG) -->
             <div style="display: flex; align-items: center; justify-content: space-between; border-bottom: 2.5px solid #000; padding-bottom: 3mm; gap: 3.5mm;">
               <div style="display: flex; align-items: center; gap: 3mm; min-width: 0;">
-                ${!isDropshipMode && storeSettings.show_logo_on_print && storeSettings.logo_mode !== 'none' ? `
+                ${!itemIsDropship && storeSettings.show_logo_on_print && storeSettings.logo_mode !== 'none' ? `
                   <div style="flex-shrink: 0; display: flex; align-items: center;">
                     ${(storeSettings.logo_mode === 'custom' || storeSettings.custom_logo_url) && storeSettings.custom_logo_url ? `
                       <img src="${storeSettings.custom_logo_url}" style="max-height: 12mm; max-width: 25mm; object-fit: contain; display: block;" alt="Logo" onerror="this.style.display='none'" />
@@ -243,9 +272,9 @@ export const BulkPrintModal: React.FC<BulkPrintModalProps> = ({
                 ` : ''}
                 <div style="min-width: 0; line-height: 1.25;">
                   <div style="font-size: 7.5pt; font-weight: 800; color: #444; text-transform: uppercase; letter-spacing: 0.5px;">PENGIRIM:</div>
-                  <div style="font-weight: 900; font-size: ${isDropshipMode ? '11.5pt' : '12pt'}; text-transform: uppercase; word-wrap: break-word;">${effectiveSenderName}</div>
-                  <div style="font-family: monospace; font-size: 9.5pt; font-weight: 800;">${effectiveSenderPhone}</div>
-                  ${effectiveSenderAddress ? `<div style="font-size: 7.5pt; color: #333; margin-top: 1px; word-wrap: break-word;">${effectiveSenderAddress}</div>` : ''}
+                  <div style="font-weight: 900; font-size: ${itemIsDropship ? '11.5pt' : '12pt'}; text-transform: uppercase; word-wrap: break-word;">${senderName}</div>
+                  <div style="font-family: monospace; font-size: 9.5pt; font-weight: 800;">${senderPhone}</div>
+                  ${senderAddress ? `<div style="font-size: 7.5pt; color: #333; margin-top: 1px; word-wrap: break-word;">${senderAddress}</div>` : ''}
                 </div>
               </div>
             </div>
@@ -298,7 +327,8 @@ export const BulkPrintModal: React.FC<BulkPrintModalProps> = ({
             Tgl Cetak: ${currentPrintDate}
           </div>
         </div>
-      `).join('');
+      `;
+      }).join('');
     } else {
       // HVS A4: 1 lembar memuat 3 alamat berbeda!
       const totalPages = Math.ceil(printItems.length / 3);
@@ -308,13 +338,15 @@ export const BulkPrintModal: React.FC<BulkPrintModalProps> = ({
         const pageItems = printItems.slice(p * 3, p * 3 + 3);
         a4Html += `
           <div class="a4-page page-break" style="width: 200mm; height: 287mm; padding: 3mm; box-sizing: border-box; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; color: #000; background: #fff; display: flex; flex-direction: column; justify-content: flex-start; margin: 0 auto; page-break-after: always; break-after: page;">
-            ${pageItems.map((item, itemIdx) => `
+            ${pageItems.map((item, itemIdx) => {
+              const { itemIsDropship, senderName, senderPhone, senderAddress } = getItemSenderInfo(item);
+              return `
               <div style="height: 91mm; border: 1.5px dashed #000; padding: 3mm 4mm; box-sizing: border-box; display: flex; flex-direction: column; justify-content: space-between; margin-bottom: 2mm; position: relative;">
                 <div>
-                  <!-- HEADER ATAS: PENGIRIM -->
+                  <!-- HEADER ATAS: PENGIRIM (DROPSHIP = LOGO DAN NAMA TOKO BAWAAN OTOMATIS HILANG) -->
                   <div style="display: flex; align-items: center; justify-content: space-between; border-bottom: 1.5px solid #000; padding-bottom: 1.5mm;">
                     <div style="display: flex; align-items: center; gap: 2.5mm;">
-                      ${!isDropshipMode && storeSettings.show_logo_on_print && storeSettings.logo_mode !== 'none' ? `
+                      ${!itemIsDropship && storeSettings.show_logo_on_print && storeSettings.logo_mode !== 'none' ? `
                         <div style="flex-shrink: 0; display: inline-flex; align-items: center;">
                           ${(storeSettings.logo_mode === 'custom' || storeSettings.custom_logo_url) && storeSettings.custom_logo_url ? `
                             <img src="${storeSettings.custom_logo_url}" alt="Logo Toko" style="max-height: 9mm; max-width: 22mm; object-fit: contain; display: block;" onerror="this.style.display='none'" />
@@ -325,8 +357,9 @@ export const BulkPrintModal: React.FC<BulkPrintModalProps> = ({
                       ` : ''}
                       <div>
                         <span style="font-size: 7pt; font-weight: 800; color: #444;">PENGIRIM: </span>
-                        <strong style="font-size: 9.5pt; text-transform: uppercase;">${effectiveSenderName}</strong>
-                        <span style="font-family: monospace; font-size: 8pt; font-weight: 800; margin-left: 2mm;">(${effectiveSenderPhone})</span>
+                        <strong style="font-size: 9.5pt; text-transform: uppercase;">${senderName}</strong>
+                        ${senderPhone ? `<span style="font-family: monospace; font-size: 8pt; font-weight: 800; margin-left: 2mm;">(${senderPhone})</span>` : ''}
+                        ${senderAddress ? `<span style="font-size: 7pt; color: #555; margin-left: 2mm;">[${senderAddress}]</span>` : ''}
                       </div>
                     </div>
                     ${showCustomerId ? `<div style="font-family: monospace; font-size: 7.5pt; font-weight: 800;">ID: ${item.customer_id}</div>` : ''}
@@ -364,7 +397,8 @@ export const BulkPrintModal: React.FC<BulkPrintModalProps> = ({
                   ✂ Gunting Di Sini (Cut Line) · Tgl Cetak: ${currentPrintDate}
                 </div>
               </div>
-            `).join('')}
+            `;
+            }).join('')}
 
             ${/* Jika halaman terakhir tersisa slot kosong, gambar panduan garis potong agar kertas tetap rapi */
               pageItems.length < 3 ? Array.from({ length: 3 - pageItems.length }).map((_, emptyIdx) => `
@@ -417,12 +451,76 @@ export const BulkPrintModal: React.FC<BulkPrintModalProps> = ({
         setNotice('Jendela cetak telah disiapkan. Jika jendela baru terblokir oleh browser, silakan klik tombol di bawah.');
       }
 
-      onPrintSuccess();
+      if (onPrintSuccess) onPrintSuccess();
     } catch (err: any) {
       console.error('Error initiating bulk print:', err);
       window.print();
     } finally {
       setIsPrinting(false);
+    }
+  };
+
+  const handleSaveBulkDropshipAddresses = async () => {
+    if (selectedAddressIds.length === 0) {
+      alert('Pilih minimal satu alamat dengan mencentang kotak.');
+      return;
+    }
+    if (!dropshipSenderName.trim() || !dropshipSenderPhone.trim()) {
+      alert('Silakan isi Nama dan No. HP Pengirim Dropship terlebih dahulu.');
+      return;
+    }
+
+    setIsSavingDropship(true);
+    setDropshipSuccessNotice(null);
+
+    try {
+      const selectedList = allAddresses.filter(a => selectedAddressIds.includes(a.address_id));
+      let savedCount = 0;
+
+      for (const addr of selectedList) {
+        await fetch('/api/addresses/save-dropship', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            address_id: addr.address_id,
+            customer_id: addr.customer_id,
+            recipient_name: addr.recipient_name,
+            recipient_phone: addr.recipient_phone,
+            full_address: addr.full_address,
+            village: addr.village,
+            district: addr.district,
+            city: addr.city,
+            province: addr.province,
+            postal_code: addr.postal_code,
+            shipping_courier: addr.shipping_courier,
+            shipping_service: addr.shipping_service,
+            shipping_notes: addr.shipping_notes,
+            dropship_sender_name: dropshipSenderName.trim(),
+            dropship_sender_phone: dropshipSenderPhone.trim(),
+            dropship_sender_city: dropshipSenderCity.trim(),
+            mode: 'update_existing'
+          })
+        });
+        savedCount++;
+      }
+
+      setAllAddresses(prev => prev.map(a => selectedAddressIds.includes(a.address_id) ? {
+        ...a,
+        address_label: 'Dropship',
+        is_dropship: true,
+        dropship_sender_name: dropshipSenderName.trim(),
+        dropship_sender_phone: dropshipSenderPhone.trim(),
+        dropship_sender_city: dropshipSenderCity.trim()
+      } : a));
+      setDropshipSuccessNotice(`✓ ${savedCount} alamat & pengirim dropship "${dropshipSenderName.trim()}" tersimpan di kolom khusus Spreadsheet & Multi-Alamat. Catatan pengiriman tetap terpisah dan siap cetak!`);
+
+      window.dispatchEvent(new CustomEvent('addresses-updated'));
+      window.dispatchEvent(new CustomEvent('groups-updated'));
+      onPrintSuccess();
+    } catch (e: any) {
+      alert('Gagal menyimpan alamat dropship: ' + e.message);
+    } finally {
+      setIsSavingDropship(false);
     }
   };
 
@@ -586,21 +684,54 @@ export const BulkPrintModal: React.FC<BulkPrintModalProps> = ({
                 </button>
 
                 {isDropshipMode && (
-                  <div className="mt-2 space-y-1.5">
+                  <div className="mt-2 space-y-2">
                     <input
                       type="text"
                       value={dropshipSenderName}
                       onChange={e => setDropshipSenderName(e.target.value)}
-                      placeholder="Nama Toko Pengirim Dropship"
+                      placeholder="Nama Toko Pengirim Dropship *"
                       className="w-full px-2.5 py-1.5 text-xs bg-white rounded-lg border border-purple-300 outline-none"
                     />
                     <input
                       type="tel"
                       value={dropshipSenderPhone}
                       onChange={e => setDropshipSenderPhone(e.target.value)}
-                      placeholder="No. HP Pengirim Dropship"
+                      placeholder="No. HP Pengirim Dropship *"
                       className="w-full px-2.5 py-1.5 text-xs bg-white rounded-lg border border-purple-300 outline-none font-mono"
                     />
+                    <input
+                      type="text"
+                      value={dropshipSenderCity}
+                      onChange={e => setDropshipSenderCity(e.target.value)}
+                      placeholder="Kota Asal Dropship (Opsional)"
+                      className="w-full px-2.5 py-1.5 text-xs bg-white rounded-lg border border-purple-300 outline-none"
+                    />
+
+                    <button
+                      type="button"
+                      onClick={handleSaveBulkDropshipAddresses}
+                      disabled={isSavingDropship || selectedAddressIds.length === 0 || !dropshipSenderName.trim() || !dropshipSenderPhone.trim()}
+                      className="w-full py-1.5 px-2 bg-purple-700 hover:bg-purple-800 text-white rounded-lg text-[11px] font-bold shadow-2xs flex items-center justify-center gap-1.5 disabled:opacity-50 transition-all"
+                    >
+                      {isSavingDropship ? (
+                        <>
+                          <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                          <span>Menyimpan ke Spreadsheet...</span>
+                        </>
+                      ) : (
+                        <>
+                          <Save className="w-3.5 h-3.5" />
+                          <span>💾 Simpan Alamat Dropship ({selectedAddressIds.length})</span>
+                        </>
+                      )}
+                    </button>
+
+                    {dropshipSuccessNotice && (
+                      <div className="p-2 bg-emerald-50 border border-emerald-200 rounded-lg text-emerald-800 text-[10px] flex items-start gap-1">
+                        <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 shrink-0 mt-0.5" />
+                        <span>{dropshipSuccessNotice}</span>
+                      </div>
+                    )}
                   </div>
                 )}
               </div>

@@ -7,17 +7,17 @@
       "group_name": "",
       "notes": "",
       "created_at": "",
-      "updated_at": "Fri Oct 23 2026 07:23:49 GMT+0700 (中南半島時間)",
+      "updated_at": "Fri Oct 23 2026 08:19:11 GMT+0700 (中南半島時間)",
       "status": "active"
     },
     {
       "customer_id": "PL0030",
       "customer_name": "Agus man / Tak'e Toko Trends Acc",
       "primary_phone": "081275566699",
-      "group_name": "CHANEL",
+      "group_name": "",
       "notes": "",
       "created_at": "Tue Oct 13 2026 00:00:00 GMT+0700 (Indochina Time)",
-      "updated_at": "Fri Oct 23 2026 03:06:01 GMT+0700 (中南半島時間)",
+      "updated_at": "Fri Oct 23 2026 08:23:08 GMT+0700 (中南半島時間)",
       "status": "active"
     },
     {
@@ -1499,8 +1499,9 @@
       "shipping_service": "Cargo",
       "shipping_notes": "Bayar sini",
       "created_at": "",
-      "updated_at": "Thu Oct 22 2026 07:24:40 GMT+0700 (Indochina Time)",
-      "status": "active"
+      "updated_at": "Fri Oct 23 2026 08:25:00 GMT+0700 (中南半島時間)",
+      "status": "active",
+      "is_dropship": false
     },
     {
       "address_id": "ADD-12347",
@@ -1512,15 +1513,16 @@
       "full_address": "TokoTtrends Acc Jl. Teratai No.83D Pekanbaru",
       "village": "",
       "district": "",
-      "city": "",
+      "city": "Pekanbaru",
       "province": "",
       "postal_code": "",
       "shipping_courier": "LARIS CARGO",
       "shipping_service": "Cargo",
       "shipping_notes": "",
       "created_at": "",
-      "updated_at": "",
-      "status": "active"
+      "updated_at": "Fri Oct 23 2026 08:23:08 GMT+0700 (中南半島時間)",
+      "status": "active",
+      "is_dropship": false
     },
     {
       "address_id": "ADD-12348",
@@ -1540,7 +1542,8 @@
       "shipping_notes": "",
       "created_at": "",
       "updated_at": "",
-      "status": "active"
+      "status": "active",
+      "is_dropship": false
     },
     {
       "address_id": "ADD-12349",
@@ -1560,7 +1563,8 @@
       "shipping_notes": "",
       "created_at": "",
       "updated_at": "",
-      "status": "active"
+      "status": "active",
+      "is_dropship": false
     },
     {
       "address_id": "ADD-12350",
@@ -1580,7 +1584,8 @@
       "shipping_notes": "",
       "created_at": "",
       "updated_at": "",
-      "status": "active"
+      "status": "active",
+      "is_dropship": false
     },
     {
       "address_id": "ADD-12351",
@@ -1600,7 +1605,8 @@
       "shipping_notes": "",
       "created_at": "",
       "updated_at": "",
-      "status": "active"
+      "status": "active",
+      "is_dropship": false
     },
     {
       "address_id": "ADD-12352",
@@ -1620,7 +1626,8 @@
       "shipping_notes": "",
       "created_at": "",
       "updated_at": "",
-      "status": "active"
+      "status": "active",
+      "is_dropship": false
     },
     {
       "address_id": "ADD-12353",
@@ -1640,7 +1647,8 @@
       "shipping_notes": "",
       "created_at": "",
       "updated_at": "",
-      "status": "active"
+      "status": "active",
+      "is_dropship": false
     },
     {
       "address_id": "ADD-12354",
@@ -1660,7 +1668,8 @@
       "shipping_notes": "",
       "created_at": "",
       "updated_at": "",
-      "status": "active"
+      "status": "active",
+      "is_dropship": false
     },
     {
       "address_id": "ADD-12355",
@@ -1680,7 +1689,8 @@
       "shipping_notes": "",
       "created_at": "",
       "updated_at": "",
-      "status": "active"
+      "status": "active",
+      "is_dropship": false
     },
     {
       "address_id": "ADD-12356",
@@ -1700,7 +1710,8 @@
       "shipping_notes": "",
       "created_at": "",
       "updated_at": "",
-      "status": "active"
+      "status": "active",
+      "is_dropship": false
     },
     {
       "address_id": "ADD-12357",
@@ -1720,7 +1731,8 @@
       "shipping_notes": "",
       "created_at": "",
       "updated_at": "",
-      "status": "active"
+      "status": "active",
+      "is_dropship": false
     },
     {
       "address_id": "ADD-12358",
@@ -1740,7 +1752,8 @@
       "shipping_notes": "",
       "created_at": "",
       "updated_at": "",
-      "status": "active"
+      "status": "active",
+      "is_dropship": false
     },
     {
       "address_id": "ADD-12359",
@@ -1760,7 +1773,8 @@
       "shipping_notes": "",
       "created_at": "",
       "updated_at": "",
-      "status": "active"
+      "status": "active",
+      "is_dropship": false
     },
     {
       "address_id": "ADD-12360",
@@ -1780,7 +1794,8 @@
       "shipping_notes": "",
       "created_at": "",
       "updated_at": "",
-      "status": "active"
+      "status": "active",
+      "is_dropship": false
     },
     {
       "address_id": "ADD-12361",
@@ -1800,7 +1815,8 @@
       "shipping_notes": "",
       "created_at": "",
       "updated_at": "",
-      "status": "active"
+      "status": "active",
+      "is_dropship": false
     },
     {
       "address_id": "ADD-12362",
@@ -1820,7 +1836,8 @@
       "shipping_notes": "",
       "created_at": "",
       "updated_at": "",
-      "status": "active"
+      "status": "active",
+      "is_dropship": false
     },
     {
       "address_id": "ADD-12363",
@@ -1840,7 +1857,8 @@
       "shipping_notes": "",
       "created_at": "",
       "updated_at": "",
-      "status": "active"
+      "status": "active",
+      "is_dropship": false
     },
     {
       "address_id": "ADD-12364",
@@ -1860,7 +1878,8 @@
       "shipping_notes": "",
       "created_at": "",
       "updated_at": "",
-      "status": "active"
+      "status": "active",
+      "is_dropship": false
     },
     {
       "address_id": "ADD-12365",
@@ -1880,7 +1899,8 @@
       "shipping_notes": "",
       "created_at": "",
       "updated_at": "",
-      "status": "active"
+      "status": "active",
+      "is_dropship": false
     },
     {
       "address_id": "ADD-12366",
@@ -1900,7 +1920,8 @@
       "shipping_notes": "",
       "created_at": "",
       "updated_at": "",
-      "status": "active"
+      "status": "active",
+      "is_dropship": false
     },
     {
       "address_id": "ADD-12367",
@@ -1920,7 +1941,8 @@
       "shipping_notes": "",
       "created_at": "",
       "updated_at": "",
-      "status": "active"
+      "status": "active",
+      "is_dropship": false
     },
     {
       "address_id": "ADD-12368",
@@ -1940,7 +1962,8 @@
       "shipping_notes": "",
       "created_at": "",
       "updated_at": "",
-      "status": "active"
+      "status": "active",
+      "is_dropship": false
     },
     {
       "address_id": "ADD-12369",
@@ -1960,7 +1983,8 @@
       "shipping_notes": "",
       "created_at": "",
       "updated_at": "",
-      "status": "active"
+      "status": "active",
+      "is_dropship": false
     },
     {
       "address_id": "ADD-12370",
@@ -1980,7 +2004,8 @@
       "shipping_notes": "",
       "created_at": "",
       "updated_at": "",
-      "status": "active"
+      "status": "active",
+      "is_dropship": false
     },
     {
       "address_id": "ADD-12371",
@@ -2000,7 +2025,8 @@
       "shipping_notes": "",
       "created_at": "",
       "updated_at": "",
-      "status": "active"
+      "status": "active",
+      "is_dropship": false
     },
     {
       "address_id": "ADD-12372",
@@ -2020,7 +2046,8 @@
       "shipping_notes": "",
       "created_at": "",
       "updated_at": "",
-      "status": "active"
+      "status": "active",
+      "is_dropship": false
     },
     {
       "address_id": "ADD-12373",
@@ -2040,7 +2067,8 @@
       "shipping_notes": "",
       "created_at": "",
       "updated_at": "",
-      "status": "active"
+      "status": "active",
+      "is_dropship": false
     },
     {
       "address_id": "ADD-12374",
@@ -2060,7 +2088,8 @@
       "shipping_notes": "",
       "created_at": "",
       "updated_at": "",
-      "status": "active"
+      "status": "active",
+      "is_dropship": false
     },
     {
       "address_id": "ADD-12375",
@@ -2080,7 +2109,8 @@
       "shipping_notes": "",
       "created_at": "",
       "updated_at": "",
-      "status": "active"
+      "status": "active",
+      "is_dropship": false
     },
     {
       "address_id": "ADD-12376",
@@ -2100,7 +2130,8 @@
       "shipping_notes": "",
       "created_at": "",
       "updated_at": "",
-      "status": "active"
+      "status": "active",
+      "is_dropship": false
     },
     {
       "address_id": "ADD-12377",
@@ -2120,7 +2151,8 @@
       "shipping_notes": "",
       "created_at": "",
       "updated_at": "",
-      "status": "active"
+      "status": "active",
+      "is_dropship": false
     },
     {
       "address_id": "ADD-12378",
@@ -2140,7 +2172,8 @@
       "shipping_notes": "",
       "created_at": "",
       "updated_at": "",
-      "status": "active"
+      "status": "active",
+      "is_dropship": false
     },
     {
       "address_id": "ADD-12379",
@@ -2160,7 +2193,8 @@
       "shipping_notes": "",
       "created_at": "",
       "updated_at": "",
-      "status": "active"
+      "status": "active",
+      "is_dropship": false
     },
     {
       "address_id": "ADD-12380",
@@ -2180,7 +2214,8 @@
       "shipping_notes": "",
       "created_at": "",
       "updated_at": "",
-      "status": "active"
+      "status": "active",
+      "is_dropship": false
     },
     {
       "address_id": "ADD-12381",
@@ -2200,7 +2235,8 @@
       "shipping_notes": "",
       "created_at": "",
       "updated_at": "",
-      "status": "active"
+      "status": "active",
+      "is_dropship": false
     },
     {
       "address_id": "ADD-12382",
@@ -2220,7 +2256,8 @@
       "shipping_notes": "",
       "created_at": "",
       "updated_at": "",
-      "status": "active"
+      "status": "active",
+      "is_dropship": false
     },
     {
       "address_id": "ADD-12383",
@@ -2240,7 +2277,8 @@
       "shipping_notes": "",
       "created_at": "",
       "updated_at": "",
-      "status": "active"
+      "status": "active",
+      "is_dropship": false
     },
     {
       "address_id": "ADD-12384",
@@ -2260,7 +2298,8 @@
       "shipping_notes": "",
       "created_at": "",
       "updated_at": "",
-      "status": "active"
+      "status": "active",
+      "is_dropship": false
     },
     {
       "address_id": "ADD-12385",
@@ -2280,7 +2319,8 @@
       "shipping_notes": "",
       "created_at": "",
       "updated_at": "",
-      "status": "active"
+      "status": "active",
+      "is_dropship": false
     },
     {
       "address_id": "ADD-12386",
@@ -2300,7 +2340,8 @@
       "shipping_notes": "",
       "created_at": "",
       "updated_at": "",
-      "status": "active"
+      "status": "active",
+      "is_dropship": false
     },
     {
       "address_id": "ADD-12387",
@@ -2320,7 +2361,8 @@
       "shipping_notes": "",
       "created_at": "",
       "updated_at": "",
-      "status": "active"
+      "status": "active",
+      "is_dropship": false
     },
     {
       "address_id": "ADD-12388",
@@ -2340,7 +2382,8 @@
       "shipping_notes": "",
       "created_at": "",
       "updated_at": "",
-      "status": "active"
+      "status": "active",
+      "is_dropship": false
     },
     {
       "address_id": "ADD-12389",
@@ -2360,7 +2403,8 @@
       "shipping_notes": "",
       "created_at": "",
       "updated_at": "",
-      "status": "active"
+      "status": "active",
+      "is_dropship": false
     },
     {
       "address_id": "ADD-12390",
@@ -2380,7 +2424,8 @@
       "shipping_notes": "",
       "created_at": "",
       "updated_at": "",
-      "status": "active"
+      "status": "active",
+      "is_dropship": false
     },
     {
       "address_id": "ADD-12391",
@@ -2400,7 +2445,8 @@
       "shipping_notes": "",
       "created_at": "",
       "updated_at": "",
-      "status": "active"
+      "status": "active",
+      "is_dropship": false
     },
     {
       "address_id": "ADD-12392",
@@ -2420,7 +2466,8 @@
       "shipping_notes": "",
       "created_at": "",
       "updated_at": "",
-      "status": "active"
+      "status": "active",
+      "is_dropship": false
     },
     {
       "address_id": "ADD-12393",
@@ -2440,7 +2487,8 @@
       "shipping_notes": "",
       "created_at": "",
       "updated_at": "",
-      "status": "active"
+      "status": "active",
+      "is_dropship": false
     },
     {
       "address_id": "ADD-12394",
@@ -2460,7 +2508,8 @@
       "shipping_notes": "",
       "created_at": "",
       "updated_at": "",
-      "status": "active"
+      "status": "active",
+      "is_dropship": false
     },
     {
       "address_id": "ADD-12395",
@@ -2480,7 +2529,8 @@
       "shipping_notes": "",
       "created_at": "",
       "updated_at": "",
-      "status": "active"
+      "status": "active",
+      "is_dropship": false
     },
     {
       "address_id": "ADD-12396",
@@ -2500,7 +2550,8 @@
       "shipping_notes": "",
       "created_at": "",
       "updated_at": "",
-      "status": "active"
+      "status": "active",
+      "is_dropship": false
     },
     {
       "address_id": "ADD-12397",
@@ -2520,7 +2571,8 @@
       "shipping_notes": "",
       "created_at": "",
       "updated_at": "",
-      "status": "active"
+      "status": "active",
+      "is_dropship": false
     },
     {
       "address_id": "ADD-12398",
@@ -2540,7 +2592,8 @@
       "shipping_notes": "",
       "created_at": "",
       "updated_at": "",
-      "status": "active"
+      "status": "active",
+      "is_dropship": false
     },
     {
       "address_id": "ADD-12399",
@@ -2560,7 +2613,8 @@
       "shipping_notes": "",
       "created_at": "",
       "updated_at": "",
-      "status": "active"
+      "status": "active",
+      "is_dropship": false
     },
     {
       "address_id": "ADD-12400",
@@ -2580,7 +2634,8 @@
       "shipping_notes": "",
       "created_at": "",
       "updated_at": "",
-      "status": "active"
+      "status": "active",
+      "is_dropship": false
     },
     {
       "address_id": "ADD-12401",
@@ -2600,7 +2655,8 @@
       "shipping_notes": "",
       "created_at": "",
       "updated_at": "",
-      "status": "active"
+      "status": "active",
+      "is_dropship": false
     },
     {
       "address_id": "ADD-12402",
@@ -2620,7 +2676,8 @@
       "shipping_notes": "",
       "created_at": "",
       "updated_at": "",
-      "status": "active"
+      "status": "active",
+      "is_dropship": false
     },
     {
       "address_id": "ADD-12403",
@@ -2640,7 +2697,8 @@
       "shipping_notes": "",
       "created_at": "",
       "updated_at": "",
-      "status": "active"
+      "status": "active",
+      "is_dropship": false
     },
     {
       "address_id": "ADD-12404",
@@ -2660,7 +2718,8 @@
       "shipping_notes": "",
       "created_at": "",
       "updated_at": "",
-      "status": "active"
+      "status": "active",
+      "is_dropship": false
     },
     {
       "address_id": "ADD-12405",
@@ -2680,7 +2739,8 @@
       "shipping_notes": "",
       "created_at": "",
       "updated_at": "",
-      "status": "active"
+      "status": "active",
+      "is_dropship": false
     },
     {
       "address_id": "ADD-12406",
@@ -2700,7 +2760,8 @@
       "shipping_notes": "",
       "created_at": "",
       "updated_at": "",
-      "status": "active"
+      "status": "active",
+      "is_dropship": false
     },
     {
       "address_id": "ADD-12407",
@@ -2720,7 +2781,8 @@
       "shipping_notes": "",
       "created_at": "",
       "updated_at": "",
-      "status": "active"
+      "status": "active",
+      "is_dropship": false
     },
     {
       "address_id": "ADD-12408",
@@ -2740,7 +2802,8 @@
       "shipping_notes": "",
       "created_at": "",
       "updated_at": "",
-      "status": "active"
+      "status": "active",
+      "is_dropship": false
     },
     {
       "address_id": "ADD-12409",
@@ -2760,7 +2823,8 @@
       "shipping_notes": "",
       "created_at": "",
       "updated_at": "",
-      "status": "active"
+      "status": "active",
+      "is_dropship": false
     },
     {
       "address_id": "ADD-12410",
@@ -2780,7 +2844,8 @@
       "shipping_notes": "",
       "created_at": "",
       "updated_at": "",
-      "status": "active"
+      "status": "active",
+      "is_dropship": false
     },
     {
       "address_id": "ADD-12411",
@@ -2800,7 +2865,8 @@
       "shipping_notes": "",
       "created_at": "",
       "updated_at": "",
-      "status": "active"
+      "status": "active",
+      "is_dropship": false
     },
     {
       "address_id": "ADD-12412",
@@ -2820,7 +2886,8 @@
       "shipping_notes": "",
       "created_at": "",
       "updated_at": "",
-      "status": "active"
+      "status": "active",
+      "is_dropship": false
     },
     {
       "address_id": "ADD-12413",
@@ -2840,7 +2907,8 @@
       "shipping_notes": "",
       "created_at": "",
       "updated_at": "",
-      "status": "active"
+      "status": "active",
+      "is_dropship": false
     },
     {
       "address_id": "ADD-12414",
@@ -2860,7 +2928,8 @@
       "shipping_notes": "",
       "created_at": "",
       "updated_at": "",
-      "status": "active"
+      "status": "active",
+      "is_dropship": false
     },
     {
       "address_id": "ADD-12415",
@@ -2880,7 +2949,8 @@
       "shipping_notes": "",
       "created_at": "",
       "updated_at": "",
-      "status": "active"
+      "status": "active",
+      "is_dropship": false
     },
     {
       "address_id": "ADD-12416",
@@ -2900,7 +2970,8 @@
       "shipping_notes": "",
       "created_at": "",
       "updated_at": "",
-      "status": "active"
+      "status": "active",
+      "is_dropship": false
     },
     {
       "address_id": "ADD-12417",
@@ -2920,7 +2991,8 @@
       "shipping_notes": "",
       "created_at": "",
       "updated_at": "",
-      "status": "active"
+      "status": "active",
+      "is_dropship": false
     },
     {
       "address_id": "ADD-12418",
@@ -2940,7 +3012,8 @@
       "shipping_notes": "",
       "created_at": "",
       "updated_at": "",
-      "status": "active"
+      "status": "active",
+      "is_dropship": false
     },
     {
       "address_id": "ADD-12419",
@@ -2960,7 +3033,8 @@
       "shipping_notes": "",
       "created_at": "",
       "updated_at": "",
-      "status": "active"
+      "status": "active",
+      "is_dropship": false
     },
     {
       "address_id": "ADD-12420",
@@ -2980,7 +3054,8 @@
       "shipping_notes": "",
       "created_at": "",
       "updated_at": "",
-      "status": "active"
+      "status": "active",
+      "is_dropship": false
     },
     {
       "address_id": "ADD-12421",
@@ -3000,7 +3075,8 @@
       "shipping_notes": "",
       "created_at": "",
       "updated_at": "",
-      "status": "active"
+      "status": "active",
+      "is_dropship": false
     },
     {
       "address_id": "ADD-12422",
@@ -3020,7 +3096,8 @@
       "shipping_notes": "",
       "created_at": "",
       "updated_at": "",
-      "status": "active"
+      "status": "active",
+      "is_dropship": false
     },
     {
       "address_id": "ADD-12423",
@@ -3040,7 +3117,8 @@
       "shipping_notes": "",
       "created_at": "",
       "updated_at": "",
-      "status": "active"
+      "status": "active",
+      "is_dropship": false
     },
     {
       "address_id": "ADD-12424",
@@ -3060,7 +3138,8 @@
       "shipping_notes": "",
       "created_at": "",
       "updated_at": "",
-      "status": "active"
+      "status": "active",
+      "is_dropship": false
     },
     {
       "address_id": "ADD-12425",
@@ -3080,7 +3159,8 @@
       "shipping_notes": "",
       "created_at": "",
       "updated_at": "",
-      "status": "active"
+      "status": "active",
+      "is_dropship": false
     },
     {
       "address_id": "ADD-12426",
@@ -3100,7 +3180,8 @@
       "shipping_notes": "",
       "created_at": "",
       "updated_at": "",
-      "status": "active"
+      "status": "active",
+      "is_dropship": false
     },
     {
       "address_id": "ADD-12427",
@@ -3120,7 +3201,8 @@
       "shipping_notes": "",
       "created_at": "",
       "updated_at": "",
-      "status": "active"
+      "status": "active",
+      "is_dropship": false
     },
     {
       "address_id": "ADD-12428",
@@ -3140,7 +3222,8 @@
       "shipping_notes": "",
       "created_at": "",
       "updated_at": "",
-      "status": "active"
+      "status": "active",
+      "is_dropship": false
     },
     {
       "address_id": "ADD-12429",
@@ -3160,7 +3243,8 @@
       "shipping_notes": "",
       "created_at": "",
       "updated_at": "",
-      "status": "active"
+      "status": "active",
+      "is_dropship": false
     },
     {
       "address_id": "ADD-12430",
@@ -3180,7 +3264,8 @@
       "shipping_notes": "",
       "created_at": "",
       "updated_at": "",
-      "status": "active"
+      "status": "active",
+      "is_dropship": false
     },
     {
       "address_id": "ADD-12431",
@@ -3200,7 +3285,8 @@
       "shipping_notes": "",
       "created_at": "",
       "updated_at": "",
-      "status": "active"
+      "status": "active",
+      "is_dropship": false
     },
     {
       "address_id": "ADD-12432",
@@ -3220,7 +3306,8 @@
       "shipping_notes": "",
       "created_at": "",
       "updated_at": "",
-      "status": "active"
+      "status": "active",
+      "is_dropship": false
     },
     {
       "address_id": "ADD-12433",
@@ -3240,7 +3327,8 @@
       "shipping_notes": "",
       "created_at": "",
       "updated_at": "",
-      "status": "active"
+      "status": "active",
+      "is_dropship": false
     },
     {
       "address_id": "ADD-12434",
@@ -3260,7 +3348,8 @@
       "shipping_notes": "",
       "created_at": "",
       "updated_at": "",
-      "status": "active"
+      "status": "active",
+      "is_dropship": false
     },
     {
       "address_id": "ADD-12435",
@@ -3280,7 +3369,8 @@
       "shipping_notes": "",
       "created_at": "",
       "updated_at": "",
-      "status": "active"
+      "status": "active",
+      "is_dropship": false
     },
     {
       "address_id": "ADD-12436",
@@ -3300,7 +3390,8 @@
       "shipping_notes": "",
       "created_at": "",
       "updated_at": "",
-      "status": "active"
+      "status": "active",
+      "is_dropship": false
     },
     {
       "address_id": "ADD-12437",
@@ -3320,7 +3411,8 @@
       "shipping_notes": "",
       "created_at": "",
       "updated_at": "",
-      "status": "active"
+      "status": "active",
+      "is_dropship": false
     },
     {
       "address_id": "ADD-12438",
@@ -3340,7 +3432,8 @@
       "shipping_notes": "",
       "created_at": "",
       "updated_at": "",
-      "status": "active"
+      "status": "active",
+      "is_dropship": false
     },
     {
       "address_id": "ADD-12439",
@@ -3360,7 +3453,8 @@
       "shipping_notes": "",
       "created_at": "",
       "updated_at": "",
-      "status": "active"
+      "status": "active",
+      "is_dropship": false
     },
     {
       "address_id": "ADD-12440",
@@ -3380,7 +3474,8 @@
       "shipping_notes": "",
       "created_at": "",
       "updated_at": "",
-      "status": "active"
+      "status": "active",
+      "is_dropship": false
     },
     {
       "address_id": "ADD-12441",
@@ -3400,7 +3495,8 @@
       "shipping_notes": "",
       "created_at": "",
       "updated_at": "",
-      "status": "active"
+      "status": "active",
+      "is_dropship": false
     },
     {
       "address_id": "ADD-12442",
@@ -3420,7 +3516,8 @@
       "shipping_notes": "",
       "created_at": "",
       "updated_at": "",
-      "status": "active"
+      "status": "active",
+      "is_dropship": false
     },
     {
       "address_id": "ADD-12443",
@@ -3440,7 +3537,8 @@
       "shipping_notes": "",
       "created_at": "",
       "updated_at": "",
-      "status": "active"
+      "status": "active",
+      "is_dropship": false
     },
     {
       "address_id": "ADD-12444",
@@ -3460,7 +3558,8 @@
       "shipping_notes": "",
       "created_at": "",
       "updated_at": "",
-      "status": "active"
+      "status": "active",
+      "is_dropship": false
     },
     {
       "address_id": "ADD-12445",
@@ -3480,7 +3579,8 @@
       "shipping_notes": "",
       "created_at": "",
       "updated_at": "",
-      "status": "active"
+      "status": "active",
+      "is_dropship": false
     },
     {
       "address_id": "ADD-12446",
@@ -3500,7 +3600,8 @@
       "shipping_notes": "",
       "created_at": "",
       "updated_at": "",
-      "status": "active"
+      "status": "active",
+      "is_dropship": false
     },
     {
       "address_id": "ADD-12447",
@@ -3520,7 +3621,8 @@
       "shipping_notes": "",
       "created_at": "",
       "updated_at": "",
-      "status": "active"
+      "status": "active",
+      "is_dropship": false
     },
     {
       "address_id": "ADD-12448",
@@ -3540,7 +3642,8 @@
       "shipping_notes": "",
       "created_at": "",
       "updated_at": "",
-      "status": "active"
+      "status": "active",
+      "is_dropship": false
     },
     {
       "address_id": "ADD-12449",
@@ -3560,7 +3663,8 @@
       "shipping_notes": "",
       "created_at": "",
       "updated_at": "",
-      "status": "active"
+      "status": "active",
+      "is_dropship": false
     },
     {
       "address_id": "ADD-12450",
@@ -3580,7 +3684,8 @@
       "shipping_notes": "",
       "created_at": "",
       "updated_at": "",
-      "status": "active"
+      "status": "active",
+      "is_dropship": false
     },
     {
       "address_id": "ADD-12451",
@@ -3600,7 +3705,8 @@
       "shipping_notes": "",
       "created_at": "",
       "updated_at": "",
-      "status": "active"
+      "status": "active",
+      "is_dropship": false
     },
     {
       "address_id": "ADD-12452",
@@ -3620,7 +3726,8 @@
       "shipping_notes": "",
       "created_at": "",
       "updated_at": "",
-      "status": "active"
+      "status": "active",
+      "is_dropship": false
     },
     {
       "address_id": "ADD-12453",
@@ -3640,7 +3747,8 @@
       "shipping_notes": "",
       "created_at": "",
       "updated_at": "",
-      "status": "active"
+      "status": "active",
+      "is_dropship": false
     },
     {
       "address_id": "ADD-12454",
@@ -3660,7 +3768,8 @@
       "shipping_notes": "",
       "created_at": "",
       "updated_at": "",
-      "status": "active"
+      "status": "active",
+      "is_dropship": false
     },
     {
       "address_id": "ADD-12455",
@@ -3680,7 +3789,8 @@
       "shipping_notes": "",
       "created_at": "",
       "updated_at": "",
-      "status": "active"
+      "status": "active",
+      "is_dropship": false
     },
     {
       "address_id": "ADD-12456",
@@ -3700,7 +3810,8 @@
       "shipping_notes": "",
       "created_at": "",
       "updated_at": "",
-      "status": "active"
+      "status": "active",
+      "is_dropship": false
     },
     {
       "address_id": "ADD-12457",
@@ -3720,7 +3831,8 @@
       "shipping_notes": "",
       "created_at": "",
       "updated_at": "",
-      "status": "active"
+      "status": "active",
+      "is_dropship": false
     },
     {
       "address_id": "ADD-12458",
@@ -3740,7 +3852,8 @@
       "shipping_notes": "",
       "created_at": "",
       "updated_at": "",
-      "status": "active"
+      "status": "active",
+      "is_dropship": false
     },
     {
       "address_id": "ADD-12459",
@@ -3760,7 +3873,8 @@
       "shipping_notes": "",
       "created_at": "",
       "updated_at": "",
-      "status": "active"
+      "status": "active",
+      "is_dropship": false
     },
     {
       "address_id": "ADD-12460",
@@ -3780,7 +3894,8 @@
       "shipping_notes": "",
       "created_at": "",
       "updated_at": "",
-      "status": "active"
+      "status": "active",
+      "is_dropship": false
     },
     {
       "address_id": "ADD-12461",
@@ -3800,7 +3915,8 @@
       "shipping_notes": "",
       "created_at": "",
       "updated_at": "",
-      "status": "active"
+      "status": "active",
+      "is_dropship": false
     },
     {
       "address_id": "ADD-12462",
@@ -3820,7 +3936,8 @@
       "shipping_notes": "",
       "created_at": "",
       "updated_at": "",
-      "status": "active"
+      "status": "active",
+      "is_dropship": false
     },
     {
       "address_id": "ADD-12463",
@@ -3840,7 +3957,8 @@
       "shipping_notes": "",
       "created_at": "",
       "updated_at": "",
-      "status": "active"
+      "status": "active",
+      "is_dropship": false
     },
     {
       "address_id": "ADD-12464",
@@ -3860,7 +3978,8 @@
       "shipping_notes": "",
       "created_at": "",
       "updated_at": "",
-      "status": "active"
+      "status": "active",
+      "is_dropship": false
     },
     {
       "address_id": "ADD-12465",
@@ -3880,7 +3999,8 @@
       "shipping_notes": "",
       "created_at": "",
       "updated_at": "",
-      "status": "active"
+      "status": "active",
+      "is_dropship": false
     },
     {
       "address_id": "ADD-12466",
@@ -3900,7 +4020,8 @@
       "shipping_notes": "",
       "created_at": "",
       "updated_at": "",
-      "status": "active"
+      "status": "active",
+      "is_dropship": false
     },
     {
       "address_id": "ADD-12467",
@@ -3920,7 +4041,8 @@
       "shipping_notes": "",
       "created_at": "",
       "updated_at": "",
-      "status": "active"
+      "status": "active",
+      "is_dropship": false
     },
     {
       "address_id": "ADD-12468",
@@ -3940,7 +4062,8 @@
       "shipping_notes": "",
       "created_at": "",
       "updated_at": "",
-      "status": "active"
+      "status": "active",
+      "is_dropship": false
     },
     {
       "address_id": "ADD-12469",
@@ -3960,7 +4083,8 @@
       "shipping_notes": "",
       "created_at": "",
       "updated_at": "",
-      "status": "active"
+      "status": "active",
+      "is_dropship": false
     },
     {
       "address_id": "ADD-12470",
@@ -3980,7 +4104,8 @@
       "shipping_notes": "",
       "created_at": "",
       "updated_at": "",
-      "status": "active"
+      "status": "active",
+      "is_dropship": false
     },
     {
       "address_id": "ADD-12471",
@@ -4000,7 +4125,8 @@
       "shipping_notes": "",
       "created_at": "",
       "updated_at": "",
-      "status": "active"
+      "status": "active",
+      "is_dropship": false
     },
     {
       "address_id": "ADD-12472",
@@ -4020,7 +4146,8 @@
       "shipping_notes": "",
       "created_at": "",
       "updated_at": "",
-      "status": "active"
+      "status": "active",
+      "is_dropship": false
     },
     {
       "address_id": "ADD-12473",
@@ -4040,7 +4167,8 @@
       "shipping_notes": "",
       "created_at": "",
       "updated_at": "",
-      "status": "active"
+      "status": "active",
+      "is_dropship": false
     },
     {
       "address_id": "ADD-12474",
@@ -4060,7 +4188,8 @@
       "shipping_notes": "",
       "created_at": "",
       "updated_at": "",
-      "status": "active"
+      "status": "active",
+      "is_dropship": false
     },
     {
       "address_id": "ADD-12475",
@@ -4080,7 +4209,8 @@
       "shipping_notes": "",
       "created_at": "",
       "updated_at": "",
-      "status": "active"
+      "status": "active",
+      "is_dropship": false
     },
     {
       "address_id": "ADD-12476",
@@ -4100,7 +4230,8 @@
       "shipping_notes": "",
       "created_at": "",
       "updated_at": "",
-      "status": "active"
+      "status": "active",
+      "is_dropship": false
     },
     {
       "address_id": "ADD-12477",
@@ -4120,7 +4251,8 @@
       "shipping_notes": "",
       "created_at": "",
       "updated_at": "",
-      "status": "active"
+      "status": "active",
+      "is_dropship": false
     },
     {
       "address_id": "ADD-12478",
@@ -4140,7 +4272,8 @@
       "shipping_notes": "",
       "created_at": "",
       "updated_at": "",
-      "status": "active"
+      "status": "active",
+      "is_dropship": false
     },
     {
       "address_id": "ADD-12479",
@@ -4160,7 +4293,8 @@
       "shipping_notes": "",
       "created_at": "",
       "updated_at": "",
-      "status": "active"
+      "status": "active",
+      "is_dropship": false
     },
     {
       "address_id": "ADD-12480",
@@ -4180,7 +4314,8 @@
       "shipping_notes": "",
       "created_at": "",
       "updated_at": "",
-      "status": "active"
+      "status": "active",
+      "is_dropship": false
     },
     {
       "address_id": "ADD-12481",
@@ -4200,7 +4335,8 @@
       "shipping_notes": "",
       "created_at": "",
       "updated_at": "",
-      "status": "active"
+      "status": "active",
+      "is_dropship": false
     },
     {
       "address_id": "ADD-12482",
@@ -4220,7 +4356,8 @@
       "shipping_notes": "",
       "created_at": "",
       "updated_at": "",
-      "status": "active"
+      "status": "active",
+      "is_dropship": false
     },
     {
       "address_id": "ADD-12483",
@@ -4240,7 +4377,8 @@
       "shipping_notes": "",
       "created_at": "",
       "updated_at": "",
-      "status": "active"
+      "status": "active",
+      "is_dropship": false
     },
     {
       "address_id": "ADD-12484",
@@ -4260,7 +4398,8 @@
       "shipping_notes": "",
       "created_at": "",
       "updated_at": "",
-      "status": "active"
+      "status": "active",
+      "is_dropship": false
     },
     {
       "address_id": "ADD-12485",
@@ -4280,7 +4419,8 @@
       "shipping_notes": "",
       "created_at": "",
       "updated_at": "",
-      "status": "active"
+      "status": "active",
+      "is_dropship": false
     },
     {
       "address_id": "ADD-12486",
@@ -4300,7 +4440,8 @@
       "shipping_notes": "",
       "created_at": "",
       "updated_at": "",
-      "status": "active"
+      "status": "active",
+      "is_dropship": false
     },
     {
       "address_id": "ADD-12487",
@@ -4320,7 +4461,8 @@
       "shipping_notes": "",
       "created_at": "",
       "updated_at": "",
-      "status": "active"
+      "status": "active",
+      "is_dropship": false
     },
     {
       "address_id": "ADD-12488",
@@ -4340,7 +4482,8 @@
       "shipping_notes": "",
       "created_at": "",
       "updated_at": "",
-      "status": "active"
+      "status": "active",
+      "is_dropship": false
     },
     {
       "address_id": "ADD-12489",
@@ -4360,7 +4503,8 @@
       "shipping_notes": "",
       "created_at": "",
       "updated_at": "",
-      "status": "active"
+      "status": "active",
+      "is_dropship": false
     },
     {
       "address_id": "ADD-12490",
@@ -4380,7 +4524,8 @@
       "shipping_notes": "",
       "created_at": "",
       "updated_at": "",
-      "status": "active"
+      "status": "active",
+      "is_dropship": false
     },
     {
       "address_id": "ADD-12491",
@@ -4400,7 +4545,8 @@
       "shipping_notes": "",
       "created_at": "",
       "updated_at": "",
-      "status": "active"
+      "status": "active",
+      "is_dropship": false
     },
     {
       "address_id": "ADD-12492",
@@ -4420,7 +4566,8 @@
       "shipping_notes": "",
       "created_at": "",
       "updated_at": "",
-      "status": "active"
+      "status": "active",
+      "is_dropship": false
     },
     {
       "address_id": "ADD-12493",
@@ -4440,7 +4587,8 @@
       "shipping_notes": "",
       "created_at": "",
       "updated_at": "",
-      "status": "active"
+      "status": "active",
+      "is_dropship": false
     },
     {
       "address_id": "ADD-12494",
@@ -4460,7 +4608,8 @@
       "shipping_notes": "",
       "created_at": "",
       "updated_at": "",
-      "status": "active"
+      "status": "active",
+      "is_dropship": false
     },
     {
       "address_id": "ADD-12495",
@@ -4480,7 +4629,8 @@
       "shipping_notes": "",
       "created_at": "",
       "updated_at": "",
-      "status": "active"
+      "status": "active",
+      "is_dropship": false
     },
     {
       "address_id": "ADD-12496",
@@ -4500,7 +4650,8 @@
       "shipping_notes": "",
       "created_at": "",
       "updated_at": "",
-      "status": "active"
+      "status": "active",
+      "is_dropship": false
     },
     {
       "address_id": "ADD-12497",
@@ -4520,7 +4671,8 @@
       "shipping_notes": "",
       "created_at": "",
       "updated_at": "",
-      "status": "active"
+      "status": "active",
+      "is_dropship": false
     },
     {
       "address_id": "ADD-12498",
@@ -4540,7 +4692,8 @@
       "shipping_notes": "",
       "created_at": "",
       "updated_at": "",
-      "status": "active"
+      "status": "active",
+      "is_dropship": false
     },
     {
       "address_id": "ADD-12499",
@@ -4560,7 +4713,8 @@
       "shipping_notes": "",
       "created_at": "",
       "updated_at": "",
-      "status": "active"
+      "status": "active",
+      "is_dropship": false
     },
     {
       "address_id": "ADD-12500",
@@ -4580,7 +4734,8 @@
       "shipping_notes": "",
       "created_at": "",
       "updated_at": "",
-      "status": "active"
+      "status": "active",
+      "is_dropship": false
     },
     {
       "address_id": "ADD-12501",
@@ -4600,7 +4755,32 @@
       "shipping_notes": "",
       "created_at": "",
       "updated_at": "",
-      "status": "active"
+      "status": "active",
+      "is_dropship": false
+    },
+    {
+      "address_id": "ADDR-000001",
+      "customer_id": "PL0110",
+      "address_label": "Dropship",
+      "group_name": "",
+      "recipient_name": "Ko Jonatan ( Toko yolies)",
+      "recipient_phone": "082230779575",
+      "full_address": "PGS Lt.1 Blok C 18 No.5 Surabaya",
+      "village": "",
+      "district": "",
+      "city": "Surabaya",
+      "province": "DKI Jakarta",
+      "postal_code": "",
+      "shipping_courier": "HTI",
+      "shipping_service": "Cargo",
+      "shipping_notes": "Bayar Tujuan",
+      "created_at": "Sat Oct 24 2026 07:47:13 GMT+0700 (中南半島時間)",
+      "updated_at": "Sat Oct 24 2026 07:49:40 GMT+0700 (中南半島時間)",
+      "status": "active",
+      "is_dropship": true,
+      "dropship_sender_name": "khanif",
+      "dropship_sender_phone": "081254865666",
+      "dropship_sender_city": "jakarta"
     }
   ],
   "couriers": [
@@ -5207,7 +5387,38 @@
       "updated_at": "Thu Oct 22 2026 09:57:08 GMT+0700 (中南半島時間)"
     }
   ],
-  "print_history": [],
+  "print_history": [
+    {
+      "customer_id": "PL0110",
+      "address_id": "ADDR-000001",
+      "recipient_name": "Rina Anggraini",
+      "shipping_courier": "J&T Express",
+      "label_format": "hvs_a4_3part",
+      "copies": 1,
+      "print_id": "PRN-1792827581439-68",
+      "printed_at": "24-10-2026 07:39:41"
+    },
+    {
+      "customer_id": "PL0110",
+      "address_id": "ADDR-000001",
+      "recipient_name": "Rina Anggraini",
+      "shipping_courier": "J&T Express",
+      "label_format": "thermal_100x150",
+      "copies": 1,
+      "print_id": "PRN-1792827574345-613",
+      "printed_at": "24-10-2026 07:39:34"
+    },
+    {
+      "customer_id": "PL0110",
+      "address_id": "ADDR-000001",
+      "recipient_name": "Rina Anggraini",
+      "shipping_courier": "J&T Express",
+      "label_format": "thermal_100x150",
+      "copies": 1,
+      "print_id": "PRN-1792827562418-227",
+      "printed_at": "24-10-2026 07:39:22"
+    }
+  ],
   "sync_queue": [
     {
       "sync_id": "SYNC-1792122241969-bvn8b",
@@ -6770,9 +6981,317 @@
       "error_message": null,
       "created_at": "23-10-2026 07:23:49",
       "synced_at": "23-10-2026 07:23:49"
+    },
+    {
+      "sync_id": "SYNC-1792745100338-w4pqu",
+      "entity_type": "ALAMAT_PENGIRIMAN",
+      "entity_id": "ADDR-000001",
+      "operation": "CREATE",
+      "payload": {
+        "address_id": "ADDR-000001",
+        "customer_id": "PL0110",
+        "address_label": "Dropship",
+        "recipient_name": "Buyer Dropship Test",
+        "recipient_phone": "081299887766",
+        "full_address": "Jl Mawar No 45",
+        "village": "",
+        "district": "",
+        "city": "Bandung",
+        "province": "DKI Jakarta",
+        "postal_code": "",
+        "shipping_courier": "JNE",
+        "shipping_service": "Reguler",
+        "shipping_notes": "Dropship: Toko Cantik (081234567)",
+        "group_name": "",
+        "created_at": "23-10-2026 08:45:00",
+        "updated_at": "23-10-2026 08:45:00",
+        "status": "active"
+      },
+      "sync_status": "SYNCED",
+      "retry_count": 0,
+      "error_message": null,
+      "created_at": "23-10-2026 08:45:00",
+      "synced_at": "23-10-2026 08:45:00"
+    },
+    {
+      "sync_id": "SYNC-1792827550293-w6e4q",
+      "entity_type": "ALAMAT_PENGIRIMAN",
+      "entity_id": "ADDR-000001",
+      "operation": "CREATE",
+      "payload": {
+        "address_id": "ADDR-000001",
+        "customer_id": "PL0110",
+        "address_label": "Dropship",
+        "recipient_name": "Rina Anggraini",
+        "recipient_phone": "081298765432",
+        "full_address": "Jl. Melati No. 45 RT 02 RW 03",
+        "village": "Menteng",
+        "district": "Menteng",
+        "city": "Jakarta Pusat",
+        "province": "DKI Jakarta",
+        "postal_code": "10310",
+        "shipping_courier": "J&T Express",
+        "shipping_service": "Reguler",
+        "shipping_notes": "Dropship: Toko Permata Ayu (081399887766) - Asal: Surabaya",
+        "group_name": "",
+        "is_dropship": true,
+        "dropship_sender_name": "Toko Permata Ayu",
+        "dropship_sender_phone": "081399887766",
+        "dropship_sender_city": "Surabaya",
+        "created_at": "24-10-2026 07:39:10",
+        "updated_at": "24-10-2026 07:39:10",
+        "status": "active"
+      },
+      "sync_status": "SYNCED",
+      "retry_count": 0,
+      "error_message": null,
+      "created_at": "24-10-2026 07:39:10",
+      "synced_at": "24-10-2026 07:39:10"
+    },
+    {
+      "sync_id": "SYNC-1792827562418-ct6z0",
+      "entity_type": "RIWAYAT_CETAK",
+      "entity_id": "PRN-1792827562418-227",
+      "operation": "CREATE",
+      "payload": {
+        "customer_id": "PL0110",
+        "address_id": "ADDR-000001",
+        "recipient_name": "Rina Anggraini",
+        "shipping_courier": "J&T Express",
+        "label_format": "thermal_100x150",
+        "copies": 1,
+        "print_id": "PRN-1792827562418-227",
+        "printed_at": "24-10-2026 07:39:22"
+      },
+      "sync_status": "SYNCED",
+      "retry_count": 0,
+      "error_message": null,
+      "created_at": "24-10-2026 07:39:22",
+      "synced_at": "24-10-2026 07:39:34"
+    },
+    {
+      "sync_id": "SYNC-1792827574345-xov1s",
+      "entity_type": "RIWAYAT_CETAK",
+      "entity_id": "PRN-1792827574345-613",
+      "operation": "CREATE",
+      "payload": {
+        "customer_id": "PL0110",
+        "address_id": "ADDR-000001",
+        "recipient_name": "Rina Anggraini",
+        "shipping_courier": "J&T Express",
+        "label_format": "thermal_100x150",
+        "copies": 1,
+        "print_id": "PRN-1792827574345-613",
+        "printed_at": "24-10-2026 07:39:34"
+      },
+      "sync_status": "SYNCED",
+      "retry_count": 0,
+      "error_message": null,
+      "created_at": "24-10-2026 07:39:34",
+      "synced_at": "24-10-2026 07:39:37"
+    },
+    {
+      "sync_id": "SYNC-1792827581440-8vex2",
+      "entity_type": "RIWAYAT_CETAK",
+      "entity_id": "PRN-1792827581439-68",
+      "operation": "CREATE",
+      "payload": {
+        "customer_id": "PL0110",
+        "address_id": "ADDR-000001",
+        "recipient_name": "Rina Anggraini",
+        "shipping_courier": "J&T Express",
+        "label_format": "hvs_a4_3part",
+        "copies": 1,
+        "print_id": "PRN-1792827581439-68",
+        "printed_at": "24-10-2026 07:39:41"
+      },
+      "sync_status": "SYNCED",
+      "retry_count": 0,
+      "error_message": null,
+      "created_at": "24-10-2026 07:39:41",
+      "synced_at": "24-10-2026 07:39:41"
+    },
+    {
+      "sync_id": "SYNC-1792827756989-9vi7q",
+      "entity_type": "ALAMAT_PENGIRIMAN",
+      "entity_id": "ADDR-000002",
+      "operation": "CREATE",
+      "payload": {
+        "address_id": "ADDR-000002",
+        "customer_id": "PL0110",
+        "address_label": "Dropship",
+        "recipient_name": "Dewi Lestari",
+        "recipient_phone": "081211223344",
+        "full_address": "Komplek Ruko Permata No. 8",
+        "village": "",
+        "district": "",
+        "city": "Bandung",
+        "province": "DKI Jakarta",
+        "postal_code": "",
+        "shipping_courier": "SiCepat",
+        "shipping_service": "Reguler",
+        "shipping_notes": "Dropship: Boutique Mutiara (087788990011) - Asal: Yogyakarta",
+        "group_name": "",
+        "is_dropship": true,
+        "dropship_sender_name": "Boutique Mutiara",
+        "dropship_sender_phone": "087788990011",
+        "dropship_sender_city": "Yogyakarta",
+        "created_at": "24-10-2026 07:42:36",
+        "updated_at": "24-10-2026 07:42:36",
+        "status": "active"
+      },
+      "sync_status": "SYNCED",
+      "retry_count": 0,
+      "error_message": null,
+      "created_at": "24-10-2026 07:42:36",
+      "synced_at": "24-10-2026 07:42:36"
+    },
+    {
+      "sync_id": "SYNC-1792829041109-27p1x",
+      "entity_type": "ALAMAT_PENGIRIMAN",
+      "entity_id": "ADDR-000002",
+      "operation": "CREATE",
+      "payload": {
+        "address_id": "ADDR-000002",
+        "customer_id": "PL0110",
+        "address_label": "Dropship",
+        "recipient_name": "Siti Nurhaliza",
+        "recipient_phone": "081987654321",
+        "full_address": "Jl. Mawar Merah No. 45",
+        "village": "",
+        "district": "",
+        "city": "Surabaya",
+        "province": "Jawa Timur",
+        "postal_code": "",
+        "shipping_courier": "J&T",
+        "shipping_service": "EZ",
+        "shipping_notes": "Fragile - Jangan dibanting",
+        "group_name": "",
+        "is_dropship": true,
+        "dropship_sender_name": "Toko Berlian Cantik",
+        "dropship_sender_phone": "085678912345",
+        "dropship_sender_city": "Semarang",
+        "created_at": "24-10-2026 08:04:01",
+        "updated_at": "24-10-2026 08:04:01",
+        "status": "active"
+      },
+      "sync_status": "SYNCED",
+      "retry_count": 0,
+      "error_message": null,
+      "created_at": "24-10-2026 08:04:01",
+      "synced_at": "24-10-2026 08:04:01"
     }
   ],
   "activity_logs": [
+    {
+      "log_id": "LOG-1792829044322-741",
+      "action_type": "SINKRONISASI",
+      "description": "Sinkronisasi data dari Google Spreadsheet berhasil diterapkan (148 pelanggan, 157 alamat, 45 jasa kirim)",
+      "timestamp": "24-10-2026 08:04:04"
+    },
+    {
+      "log_id": "LOG-1792829041109-94",
+      "action_type": "TAMBAH_ALAMAT",
+      "description": "Alamat baru \"Dropship\" (Siti Nurhaliza) ditambahkan untuk Ko Jonatan ( Toko yolies) Surabaya (PL0110)",
+      "entity_id": "ADDR-000002",
+      "timestamp": "24-10-2026 08:04:01"
+    },
+    {
+      "log_id": "LOG-1792828765994-931",
+      "action_type": "SINKRONISASI",
+      "description": "Sinkronisasi data dari Google Spreadsheet berhasil diterapkan (148 pelanggan, 157 alamat, 45 jasa kirim)",
+      "timestamp": "24-10-2026 07:59:25"
+    },
+    {
+      "log_id": "LOG-1792828664332-704",
+      "action_type": "SINKRONISASI",
+      "description": "Sinkronisasi data dari Google Spreadsheet berhasil diterapkan (148 pelanggan, 157 alamat, 45 jasa kirim)",
+      "timestamp": "24-10-2026 07:57:44"
+    },
+    {
+      "log_id": "LOG-1792828565323-178",
+      "action_type": "SINKRONISASI",
+      "description": "Sinkronisasi data dari Google Spreadsheet berhasil diterapkan (148 pelanggan, 157 alamat, 45 jasa kirim)",
+      "timestamp": "24-10-2026 07:56:05"
+    },
+    {
+      "log_id": "LOG-1792828494717-111",
+      "action_type": "SINKRONISASI",
+      "description": "Sinkronisasi data dari Google Spreadsheet berhasil diterapkan (148 pelanggan, 157 alamat, 45 jasa kirim)",
+      "timestamp": "24-10-2026 07:54:54"
+    },
+    {
+      "log_id": "LOG-1792827759351-493",
+      "action_type": "SINKRONISASI",
+      "description": "Sinkronisasi data dari Google Spreadsheet berhasil diterapkan (148 pelanggan, 157 alamat, 45 jasa kirim)",
+      "timestamp": "24-10-2026 07:42:39"
+    },
+    {
+      "log_id": "LOG-1792827756989-40",
+      "action_type": "TAMBAH_ALAMAT",
+      "description": "Alamat baru \"Dropship\" (Dewi Lestari) ditambahkan untuk Ko Jonatan ( Toko yolies) Surabaya (PL0110)",
+      "entity_id": "ADDR-000002",
+      "timestamp": "24-10-2026 07:42:36"
+    },
+    {
+      "log_id": "LOG-1792827581440-967",
+      "action_type": "CETAK_LABEL",
+      "description": "Mencetak label (HVS A4 3-Bagian) untuk Rina Anggraini (J&T Express) - 1 salinan",
+      "entity_id": "ADDR-000001",
+      "timestamp": "24-10-2026 07:39:41"
+    },
+    {
+      "log_id": "LOG-1792827575426-388",
+      "action_type": "SINKRONISASI",
+      "description": "Sinkronisasi data dari Google Spreadsheet berhasil diterapkan (148 pelanggan, 157 alamat, 45 jasa kirim)",
+      "timestamp": "24-10-2026 07:39:35"
+    },
+    {
+      "log_id": "LOG-1792827574345-875",
+      "action_type": "CETAK_LABEL",
+      "description": "Mencetak label (Thermal 100x150) untuk Rina Anggraini (J&T Express) - 1 salinan",
+      "entity_id": "ADDR-000001",
+      "timestamp": "24-10-2026 07:39:34"
+    },
+    {
+      "log_id": "LOG-1792827562418-54",
+      "action_type": "CETAK_LABEL",
+      "description": "Mencetak label (Thermal 100x150) untuk Rina Anggraini (J&T Express) - 1 salinan",
+      "entity_id": "ADDR-000001",
+      "timestamp": "24-10-2026 07:39:22"
+    },
+    {
+      "log_id": "LOG-1792827550293-420",
+      "action_type": "TAMBAH_ALAMAT",
+      "description": "Alamat baru \"Dropship\" (Rina Anggraini) ditambahkan untuk Ko Jonatan ( Toko yolies) Surabaya (PL0110)",
+      "entity_id": "ADDR-000001",
+      "timestamp": "24-10-2026 07:39:10"
+    },
+    {
+      "log_id": "LOG-1792826680928-885",
+      "action_type": "SINKRONISASI",
+      "description": "Sinkronisasi data dari Google Spreadsheet berhasil diterapkan (148 pelanggan, 156 alamat, 45 jasa kirim)",
+      "timestamp": "24-10-2026 07:24:40"
+    },
+    {
+      "log_id": "LOG-1792745100338-512",
+      "action_type": "TAMBAH_ALAMAT",
+      "description": "Alamat baru \"Dropship\" (Buyer Dropship Test) ditambahkan untuk Ko Jonatan ( Toko yolies) Surabaya (PL0110)",
+      "entity_id": "ADDR-000001",
+      "timestamp": "23-10-2026 08:45:00"
+    },
+    {
+      "log_id": "LOG-1792745098873-330",
+      "action_type": "SINKRONISASI",
+      "description": "Sinkronisasi data dari Google Spreadsheet berhasil diterapkan (148 pelanggan, 156 alamat, 45 jasa kirim)",
+      "timestamp": "23-10-2026 08:44:58"
+    },
+    {
+      "log_id": "LOG-1792744549918-670",
+      "action_type": "SINKRONISASI",
+      "description": "Sinkronisasi data dari Google Spreadsheet berhasil diterapkan (148 pelanggan, 156 alamat, 45 jasa kirim)",
+      "timestamp": "23-10-2026 08:35:49"
+    },
     {
       "log_id": "LOG-1792740348613-188",
       "action_type": "SINKRONISASI",

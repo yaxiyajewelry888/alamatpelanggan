@@ -329,7 +329,11 @@ export const ImportExportView: React.FC<ImportExportViewProps> = ({ onImportComp
       'postal_code',
       'shipping_courier',
       'shipping_service',
-      'shipping_notes'
+      'shipping_notes',
+      'is_dropship',
+      'dropship_sender_name',
+      'dropship_sender_phone',
+      'dropship_sender_city'
     ];
 
     const sampleRow = [
@@ -350,7 +354,11 @@ export const ImportExportView: React.FC<ImportExportViewProps> = ({ onImportComp
       '10310',
       'JNE',
       'YES (Yakin Esok Sampai)',
-      'Jangan dibanting'
+      'Jangan dibanting',
+      'TIDAK',
+      '',
+      '',
+      ''
     ];
 
     const csvContent = 'data:text/csv;charset=utf-8,' + [headers.join(','), sampleRow.join(',')].join('\n');

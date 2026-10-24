@@ -27,6 +27,10 @@ export interface Address {
   shipping_service: string;
   shipping_notes: string;
   group_name?: string; // Group name: HERMES, DIAMOND, CHANEL, etc.
+  is_dropship?: boolean;
+  dropship_sender_name?: string;
+  dropship_sender_phone?: string;
+  dropship_sender_city?: string;
   created_at: string;
   updated_at: string;
   status: 'active' | 'archived' | 'deleted';

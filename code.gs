@@ -39,7 +39,7 @@ var SHEET_CONFIG = {
   },
   ALAMAT_PENGIRIMAN: {
     name: 'ALAMAT_PENGIRIMAN',
-    headers: ['address_id', 'customer_id', 'address_label', 'group_name', 'recipient_name', 'recipient_phone', 'full_address', 'village', 'district', 'city', 'province', 'postal_code', 'shipping_courier', 'shipping_service', 'shipping_notes', 'created_at', 'updated_at', 'status'],
+    headers: ['address_id', 'customer_id', 'address_label', 'group_name', 'recipient_name', 'recipient_phone', 'full_address', 'village', 'district', 'city', 'province', 'postal_code', 'shipping_courier', 'shipping_service', 'shipping_notes', 'is_dropship', 'dropship_sender_name', 'dropship_sender_phone', 'dropship_sender_city', 'created_at', 'updated_at', 'status'],
     color: '#be185d' // Pink Rose
   },
   GRUP_ALAMAT: {
@@ -279,6 +279,20 @@ function ensureAllSheetsExist() {
       var headers = conf.headers;
       sheet.getRange(1, 1, 1, headers.length).setValues([headers]);
       formatHeaderRow(sheet, headers.length, conf.color);
+    } else {
+      // Auto-upgrade header jika ada kolom baru (misal: kolom dropship)
+      var currentHeaders = sheet.getRange(1, 1, 1, lastCol).getValues()[0].map(function(h) { return String(h || '').trim().toLowerCase(); });
+      var missingHeaders = [];
+      conf.headers.forEach(function(targetHeader) {
+        if (currentHeaders.indexOf(targetHeader.toLowerCase()) === -1) {
+          missingHeaders.push(targetHeader);
+        }
+      });
+      if (missingHeaders.length > 0) {
+        var startCol = lastCol + 1;
+        sheet.getRange(1, startCol, 1, missingHeaders.length).setValues([missingHeaders]);
+        formatHeaderRow(sheet, lastCol + missingHeaders.length, conf.color);
+      }
     }
   }
 }
@@ -370,6 +384,7 @@ function saveAllDataToSheets(data) {
     var activeAddrs = data.addresses.filter(function(a) { return a.status !== 'deleted'; });
     if (activeAddrs.length > 0) {
       var addrRows = activeAddrs.map(function(a) {
+        var isDrop = (a.is_dropship || a.address_label === 'Dropship' || (a.dropship_sender_name && String(a.dropship_sender_name).trim().length > 0)) ? 'YA' : 'TIDAK';
         return [
           a.address_id || '',
           a.customer_id || '',
@@ -386,6 +401,10 @@ function saveAllDataToSheets(data) {
           a.shipping_courier || '',
           a.shipping_service || '',
           a.shipping_notes || '',
+          isDrop,
+          a.dropship_sender_name || '',
+          a.dropship_sender_phone || '',
+          a.dropship_sender_city || '',
           a.created_at || '',
           a.updated_at || '',
           a.status || 'active'
@@ -546,35 +565,87 @@ function getAllDataFromSheets() {
   // 2. Baca Alamat
   var addrSheet = ss.getSheetByName(SHEET_CONFIG.ALAMAT_PENGIRIMAN.name);
   if (addrSheet && addrSheet.getLastRow() > 1) {
-    var addrValues = addrSheet.getRange(2, 1, addrSheet.getLastRow() - 1, SHEET_CONFIG.ALAMAT_PENGIRIMAN.headers.length).getValues();
+    var lastColAddr = Math.max(addrSheet.getLastColumn(), 1);
+    var addrHeaders = addrSheet.getRange(1, 1, 1, lastColAddr).getValues()[0];
+    var colMap = {};
+    addrHeaders.forEach(function(h, idx) {
+      if (h) colMap[String(h).trim().toLowerCase()] = idx;
+    });
+
+    var getVal = function(row, colName, fallbackIdx, defVal) {
+      var low = colName.toLowerCase();
+      if (colMap[low] !== undefined && row[colMap[low]] !== undefined && row[colMap[low]] !== null) {
+        return row[colMap[low]];
+      }
+      if (fallbackIdx !== undefined && fallbackIdx >= 0 && fallbackIdx < row.length && row[fallbackIdx] !== undefined) {
+        return row[fallbackIdx];
+      }
+      return defVal !== undefined ? defVal : '';
+    };
+
+    var addrValues = addrSheet.getRange(2, 1, addrSheet.getLastRow() - 1, lastColAddr).getValues();
     result.addresses = addrValues.map(function(r, idx) {
-      var phone = String(r[5] || '').trim();
+      var phone = String(getVal(r, 'recipient_phone', 5, '')).trim();
       if (phone.length > 0 && !phone.startsWith('0') && !phone.startsWith('+')) {
         phone = '0' + phone;
       }
-      var addrId = String(r[0] || '').trim();
+      var addrId = String(getVal(r, 'address_id', 0, '')).trim();
       if (!addrId) {
         addrId = 'ADDR-' + (idx + 1).toString().padStart(6, '0');
       }
+
+      var isDropRaw = String(getVal(r, 'is_dropship', -1, '')).trim().toUpperCase();
+      var dropName = String(getVal(r, 'dropship_sender_name', -1, '')).trim();
+      var dropPhone = String(getVal(r, 'dropship_sender_phone', -1, '')).trim();
+      var dropCity = String(getVal(r, 'dropship_sender_city', -1, '')).trim();
+      var isDropship = isDropRaw === 'YA' || isDropRaw === 'TRUE' || isDropRaw === '1' || dropName.length > 0;
+
+      var shippingNotes = String(getVal(r, 'shipping_notes', 14, '')).trim();
+      // If legacy shipping notes contained embedded Dropship info, recover it if dedicated columns were blank
+      if (!dropName && shippingNotes.indexOf('Dropship:') !== -1) {
+        var match = shippingNotes.match(/Dropship:\s*([^(|]+)(?:\(([^)]*)\))?(?:\s*-\s*Asal:\s*([^;,\n|]+))?/i);
+        if (match) {
+          isDropship = true;
+          if (match[1]) dropName = match[1].trim();
+          if (match[2]) dropPhone = match[2].trim();
+          if (match[3]) dropCity = match[3].trim();
+        }
+      }
+      // Clean legacy dropship string from shipping_notes so shipping_notes stays purely independent
+      if (shippingNotes.indexOf('Dropship:') !== -1) {
+        shippingNotes = shippingNotes
+          .replace(/\|\s*Dropship:\s*[^|]+/i, '')
+          .replace(/Dropship:\s*[^|]+\|\s*/i, '')
+          .replace(/Dropship:\s*[^(]+(?:\([^)]*\))?(?:\s*-\s*Asal:\s*[^;,\n]+)?/i, '')
+          .trim();
+      }
+
+      var statusVal = String(getVal(r, 'status', r.length - 1, 'active')).trim();
+      if (statusVal !== 'archived' && statusVal !== 'deleted') statusVal = 'active';
+
       return {
         address_id: addrId,
-        customer_id: String(r[1] || '').trim(),
-        address_label: String(r[2] || 'Rumah').trim(),
-        group_name: String(r[3] || '').trim(),
-        recipient_name: String(r[4] || '').trim(),
+        customer_id: String(getVal(r, 'customer_id', 1, '')).trim(),
+        address_label: String(getVal(r, 'address_label', 2, 'Rumah')).trim(),
+        group_name: String(getVal(r, 'group_name', 3, '')).trim(),
+        recipient_name: String(getVal(r, 'recipient_name', 4, '')).trim(),
         recipient_phone: phone,
-        full_address: String(r[6] || '').trim(),
-        village: String(r[7] || '').trim(),
-        district: String(r[8] || '').trim(),
-        city: String(r[9] || '').trim(),
-        province: String(r[10] || '').trim(),
-        postal_code: String(r[11] || '').trim(),
-        shipping_courier: String(r[12] || '').trim(),
-        shipping_service: String(r[13] || '').trim(),
-        shipping_notes: String(r[14] || '').trim(),
-        created_at: String(r[15] || ''),
-        updated_at: String(r[16] || ''),
-        status: (r[17] === 'archived' || r[17] === 'deleted') ? r[17] : 'active'
+        full_address: String(getVal(r, 'full_address', 6, '')).trim(),
+        village: String(getVal(r, 'village', 7, '')).trim(),
+        district: String(getVal(r, 'district', 8, '')).trim(),
+        city: String(getVal(r, 'city', 9, '')).trim(),
+        province: String(getVal(r, 'province', 10, '')).trim(),
+        postal_code: String(getVal(r, 'postal_code', 11, '')).trim(),
+        shipping_courier: String(getVal(r, 'shipping_courier', 12, '')).trim(),
+        shipping_service: String(getVal(r, 'shipping_service', 13, '')).trim(),
+        shipping_notes: shippingNotes,
+        is_dropship: isDropship,
+        dropship_sender_name: dropName,
+        dropship_sender_phone: dropPhone,
+        dropship_sender_city: dropCity,
+        created_at: String(getVal(r, 'created_at', 19, '')),
+        updated_at: String(getVal(r, 'updated_at', 20, '')),
+        status: statusVal
       };
     }).filter(function(a) { return a.address_id.length > 0 && a.status !== 'deleted'; });
   }
@@ -848,6 +919,31 @@ function upsertAddressRow(address) {
   var sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(SHEET_CONFIG.ALAMAT_PENGIRIMAN.name);
   if (!sheet) return;
 
+  var lastCol = Math.max(sheet.getLastColumn(), 1);
+  var headerValues = sheet.getRange(1, 1, 1, lastCol).getValues()[0];
+  var colMap = {};
+  headerValues.forEach(function(h, idx) {
+    if (h) colMap[String(h).trim().toLowerCase()] = idx;
+  });
+
+  // Auto-tambahkan kolom dropship jika belum ada di header
+  var requiredDropshipCols = ['is_dropship', 'dropship_sender_name', 'dropship_sender_phone', 'dropship_sender_city'];
+  var missingCols = [];
+  requiredDropshipCols.forEach(function(col) {
+    if (colMap[col] === undefined) missingCols.push(col);
+  });
+  if (missingCols.length > 0) {
+    var startCol = lastCol + 1;
+    sheet.getRange(1, startCol, 1, missingCols.length).setValues([missingCols]);
+    formatHeaderRow(sheet, lastCol + missingCols.length, SHEET_CONFIG.ALAMAT_PENGIRIMAN.color);
+    lastCol = sheet.getLastColumn();
+    headerValues = sheet.getRange(1, 1, 1, lastCol).getValues()[0];
+    colMap = {};
+    headerValues.forEach(function(h, idx) {
+      if (h) colMap[String(h).trim().toLowerCase()] = idx;
+    });
+  }
+
   var id = String(address.address_id).trim();
   var lastRow = sheet.getLastRow();
   var matchingRows = [];
@@ -862,26 +958,38 @@ function upsertAddressRow(address) {
   }
 
   var cleanGroup = address.group_name === '-' ? '' : (address.group_name || '');
-  var rowData = [
-    address.address_id,
-    address.customer_id || '',
-    address.address_label || '',
-    cleanGroup,
-    address.recipient_name || '',
-    address.recipient_phone || '',
-    address.full_address || '',
-    address.village || '',
-    address.district || '',
-    address.city || '',
-    address.province || '',
-    address.postal_code || '',
-    address.shipping_courier || '',
-    address.shipping_service || '',
-    address.shipping_notes || '',
-    address.created_at || '',
-    address.updated_at || '',
-    address.status || 'active'
-  ];
+  var isDropVal = (address.is_dropship || address.address_label === 'Dropship' || (address.dropship_sender_name && String(address.dropship_sender_name).trim().length > 0)) ? 'YA' : 'TIDAK';
+
+  var rowMap = {
+    address_id: address.address_id,
+    customer_id: address.customer_id || '',
+    address_label: address.address_label || '',
+    group_name: cleanGroup,
+    recipient_name: address.recipient_name || '',
+    recipient_phone: address.recipient_phone || '',
+    full_address: address.full_address || '',
+    village: address.village || '',
+    district: address.district || '',
+    city: address.city || '',
+    province: address.province || '',
+    postal_code: address.postal_code || '',
+    shipping_courier: address.shipping_courier || '',
+    shipping_service: address.shipping_service || '',
+    shipping_notes: address.shipping_notes || '',
+    is_dropship: isDropVal,
+    dropship_sender_name: address.dropship_sender_name || '',
+    dropship_sender_phone: address.dropship_sender_phone || '',
+    dropship_sender_city: address.dropship_sender_city || '',
+    created_at: address.created_at || '',
+    updated_at: address.updated_at || '',
+    status: address.status || 'active'
+  };
+
+  var rowData = [];
+  for (var c = 0; c < headerValues.length; c++) {
+    var hKey = String(headerValues[c] || '').trim().toLowerCase();
+    rowData.push(rowMap[hKey] !== undefined ? rowMap[hKey] : '');
+  }
 
   if (matchingRows.length > 0) {
     sheet.getRange(matchingRows[0], 1, 1, rowData.length).setValues([rowData]);
@@ -933,10 +1041,20 @@ function updateAddressStatus(addressId, status) {
   var lastRow = sheet.getLastRow();
   if (lastRow <= 1) return;
 
+  var lastCol = Math.max(sheet.getLastColumn(), 1);
+  var headerValues = sheet.getRange(1, 1, 1, lastCol).getValues()[0];
+  var statusCol = lastCol;
+  for (var c = 0; c < headerValues.length; c++) {
+    if (String(headerValues[c] || '').trim().toLowerCase() === 'status') {
+      statusCol = c + 1;
+      break;
+    }
+  }
+
   var colA = sheet.getRange(2, 1, lastRow - 1, 1).getValues();
   for (var i = 0; i < colA.length; i++) {
     if (String(colA[i][0]).trim().toUpperCase() === id) {
-      sheet.getRange(i + 2, 18).setValue(status || 'archived');
+      sheet.getRange(i + 2, statusCol).setValue(status || 'archived');
       break;
     }
   }

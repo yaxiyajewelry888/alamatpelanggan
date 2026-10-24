@@ -28,6 +28,10 @@ export interface Address {
   shipping_service: string;
   shipping_notes: string;
   group_name?: string;
+  is_dropship?: boolean;
+  dropship_sender_name?: string;
+  dropship_sender_phone?: string;
+  dropship_sender_city?: string;
   created_at: string;
   updated_at: string;
   status: 'active' | 'archived' | 'deleted';
@@ -786,6 +790,10 @@ class DatabaseEngine {
       shipping_service: input.shipping_service?.trim() || '',
       shipping_notes: input.shipping_notes?.trim() || '',
       group_name: (input.group_name !== undefined ? input.group_name : (customer.group_name || '')).trim(),
+      is_dropship: input.is_dropship ?? (input.address_label?.trim() === 'Dropship' || Boolean(input.dropship_sender_name?.trim())),
+      dropship_sender_name: input.dropship_sender_name?.trim() || '',
+      dropship_sender_phone: input.dropship_sender_phone?.trim() || '',
+      dropship_sender_city: input.dropship_sender_city?.trim() || '',
       created_at: timestamp,
       updated_at: timestamp,
       status: input.status || 'active'
@@ -821,6 +829,10 @@ class DatabaseEngine {
     if (updates.shipping_service !== undefined) address.shipping_service = updates.shipping_service.trim();
     if (updates.shipping_notes !== undefined) address.shipping_notes = updates.shipping_notes.trim();
     if (updates.group_name !== undefined) address.group_name = updates.group_name.trim();
+    if (updates.is_dropship !== undefined) address.is_dropship = updates.is_dropship;
+    if (updates.dropship_sender_name !== undefined) address.dropship_sender_name = updates.dropship_sender_name.trim();
+    if (updates.dropship_sender_phone !== undefined) address.dropship_sender_phone = updates.dropship_sender_phone.trim();
+    if (updates.dropship_sender_city !== undefined) address.dropship_sender_city = updates.dropship_sender_city.trim();
     if (updates.status !== undefined) address.status = updates.status;
     address.updated_at = timestamp;
 

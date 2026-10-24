@@ -16,7 +16,7 @@ export const REQUIRED_SHEETS: SheetDefinition[] = [
   },
   {
     title: 'ALAMAT_PENGIRIMAN',
-    headers: ['address_id', 'customer_id', 'address_label', 'recipient_name', 'recipient_phone', 'full_address', 'village', 'district', 'city', 'province', 'postal_code', 'shipping_courier', 'shipping_service', 'shipping_notes', 'created_at', 'updated_at', 'status']
+    headers: ['address_id', 'customer_id', 'address_label', 'group_name', 'recipient_name', 'recipient_phone', 'full_address', 'village', 'district', 'city', 'province', 'postal_code', 'shipping_courier', 'shipping_service', 'shipping_notes', 'is_dropship', 'dropship_sender_name', 'dropship_sender_phone', 'dropship_sender_city', 'created_at', 'updated_at', 'status']
   },
   {
     title: 'JASA_KIRIM',
