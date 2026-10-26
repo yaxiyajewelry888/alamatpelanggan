@@ -25,6 +25,7 @@ import {
   Database
 } from 'lucide-react';
 import { YaxiyaLogo } from './utils/logo';
+import { updateFavicon } from './utils/faviconHelper';
 
 export default function App() {
   const [currentMenu, setCurrentMenu] = useState<NavMenu>('dashboard');
@@ -100,16 +101,33 @@ export default function App() {
         .catch(err => console.error('Error refreshing settings:', err));
     };
 
+    const onFaviconUpdated = (e: any) => {
+      const customUrl = e?.detail?.custom_logo_url;
+      updateFavicon(customUrl);
+    };
+
     window.addEventListener('focus', onFocus);
     window.addEventListener('couriers-updated', onCouriersUpdated);
     window.addEventListener('settings-updated', onSettingsUpdated);
+    window.addEventListener('favicon-updated', onFaviconUpdated);
 
     return () => {
       window.removeEventListener('focus', onFocus);
       window.removeEventListener('couriers-updated', onCouriersUpdated);
       window.removeEventListener('settings-updated', onSettingsUpdated);
+      window.removeEventListener('favicon-updated', onFaviconUpdated);
     };
   }, []);
+
+  // Sync browser favicon with store custom logo
+  useEffect(() => {
+    if (storeSettings) {
+      const activeLogo = (storeSettings.logo_mode === 'custom' || storeSettings.custom_logo_url) && storeSettings.custom_logo_url
+        ? storeSettings.custom_logo_url
+        : undefined;
+      updateFavicon(activeLogo);
+    }
+  }, [storeSettings]);
 
   // Fetch Dashboard Stats, Customers, Couriers, Settings
   useEffect(() => {

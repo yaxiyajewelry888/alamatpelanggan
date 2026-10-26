@@ -1041,11 +1041,16 @@ apiRouter.get('/print-page', (req: Request, res: Response) => {
 
     const pageTitle = isDropship && dropshipName.trim() ? dropshipName.trim() : settings.store_name;
 
+    const printFavicon = (settings.logo_mode === 'custom' || settings.custom_logo_url) && settings.custom_logo_url
+      ? settings.custom_logo_url
+      : '/logo-yaxiya-pink.png';
+
     const fullHtml = `<!DOCTYPE html>
 <html lang="id">
 <head>
   <meta charset="UTF-8">
   <title>Cetak Label - ${pageTitle}</title>
+  <link rel="icon" href="${printFavicon}">
   <style>
     @page {
       size: ${format === 'thermal_100x150' ? '100mm 150mm' : '210mm 297mm'};

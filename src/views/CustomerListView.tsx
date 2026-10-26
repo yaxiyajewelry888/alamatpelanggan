@@ -22,7 +22,11 @@ import {
   Package,
   Layers,
   ClipboardPaste,
-  RefreshCw
+  RefreshCw,
+  Home,
+  Building2,
+  Send,
+  Tag
 } from 'lucide-react';
 import { INDONESIA_PROVINCES } from '../utils/indonesianData';
 import { BulkPrintModal } from '../components/BulkPrintModal';
@@ -734,93 +738,159 @@ export const CustomerListView: React.FC<CustomerListViewProps> = ({
                                 </div>
                               ) : (
                                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
-                                  {addresses.map(addr => {
-                                    const isDropship = addr.recipient_name.toLowerCase() !== customer.customer_name.toLowerCase();
+                                   {addresses.map(addr => {
+                                     const cleanLabel = (addr.address_label || 'Rumah').trim();
+                                     const lowerLabel = cleanLabel.toLowerCase();
+                                     const isDropship = Boolean(addr.is_dropship) || 
+                                       lowerLabel === 'dropship' || 
+                                       Boolean(addr.dropship_sender_name && addr.dropship_sender_name.trim().length > 0);
 
-                                    return (
-                                      <div
-                                        key={addr.address_id}
-                                        className="p-3 rounded-xl border border-slate-200 hover:border-pink-300 bg-white flex flex-col justify-between transition-all space-y-2"
-                                      >
-                                        <div>
-                                          <div className="flex items-center justify-between gap-1 pb-1.5 border-b border-slate-100">
-                                            <div className="flex items-center gap-1.5 flex-wrap">
-                                              <span className="font-bold text-xs text-slate-900">
-                                                {addr.address_label}
-                                              </span>
-                                              {addr.group_name && (
-                                                <span className={`text-[9px] font-black px-2 py-0.5 rounded border uppercase ${getGroupBadgeStyle(addr.group_name)}`}>
-                                                  Grup: {addr.group_name}
-                                                </span>
-                                              )}
-                                              {isDropship && (
-                                                <span className="text-[9px] font-bold px-1.5 py-0.2 rounded bg-purple-100 text-purple-700">
-                                                  Dropship
-                                                </span>
-                                              )}
-                                            </div>
-                                            <span className="text-[10px] font-mono text-slate-400">
-                                              {addr.address_id}
-                                            </span>
-                                          </div>
+                                     return (
+                                       <div
+                                         key={addr.address_id}
+                                         className={`p-3 rounded-xl border bg-white flex flex-col justify-between transition-all space-y-2 ${
+                                           isDropship 
+                                             ? 'border-purple-200 hover:border-purple-400 bg-purple-50/10' 
+                                             : 'border-slate-200 hover:border-pink-300'
+                                         }`}
+                                       >
+                                         <div>
+                                           <div className="flex items-center justify-between gap-1 pb-1.5 border-b border-slate-100">
+                                             <div className="flex items-center gap-1.5 flex-wrap">
+                                               {/* Label Alamat: Rumah / Kantor / Dropship */}
+                                               {isDropship ? (
+                                                 <div className="inline-flex items-center gap-1.5 flex-wrap">
+                                                   <span className="inline-flex items-center gap-1 text-[11px] font-black px-2 py-0.5 rounded-md bg-purple-100 text-purple-900 border border-purple-300 shadow-2xs">
+                                                     <Send className="w-3 h-3 text-purple-700" />
+                                                     Dropship
+                                                   </span>
+                                                   {addr.dropship_sender_name && (
+                                                     <span className="text-[10px] font-bold text-purple-800 bg-purple-50 px-2 py-0.5 rounded-md border border-purple-200" title={`Pengirim Dropship: ${addr.dropship_sender_name} ${addr.dropship_sender_phone ? `(${addr.dropship_sender_phone})` : ''} ${addr.dropship_sender_city ? `· ${addr.dropship_sender_city}` : ''}`}>
+                                                       Pengirim: {addr.dropship_sender_name}
+                                                     </span>
+                                                   )}
+                                                 </div>
+                                               ) : lowerLabel === 'rumah' ? (
+                                                 <span className="inline-flex items-center gap-1 text-[11px] font-bold px-2 py-0.5 rounded-md bg-blue-50 text-blue-700 border border-blue-200">
+                                                   <Home className="w-3 h-3 text-blue-600" />
+                                                   Rumah
+                                                 </span>
+                                               ) : lowerLabel === 'kantor' ? (
+                                                 <span className="inline-flex items-center gap-1 text-[11px] font-bold px-2 py-0.5 rounded-md bg-emerald-50 text-emerald-700 border border-emerald-200">
+                                                   <Building2 className="w-3 h-3 text-emerald-600" />
+                                                   Kantor
+                                                 </span>
+                                               ) : (
+                                                 <span className="inline-flex items-center gap-1 text-[11px] font-bold px-2 py-0.5 rounded-md bg-slate-100 text-slate-800 border border-slate-200">
+                                                   {cleanLabel}
+                                                 </span>
+                                               )}
 
-                                          <div className="pt-1.5 text-xs space-y-0.5">
-                                            <div className="font-bold text-slate-900">
-                                              {addr.recipient_name}
-                                            </div>
-                                            <div className="font-mono text-slate-600 text-[11px]">
-                                              {addr.recipient_phone}
-                                            </div>
-                                            <div className="text-[11px] text-slate-700 line-clamp-2">
-                                              {addr.full_address}
-                                            </div>
-                                            <div className="text-[10px] text-slate-500 font-medium">
-                                              {[addr.district, addr.city, addr.province, addr.postal_code].filter(Boolean).join(', ')}
-                                            </div>
-                                            <div className="pt-1 flex items-center gap-1">
-                                              <span className="text-[10px] font-semibold px-2 py-0.5 rounded bg-slate-100 text-slate-800 flex items-center gap-1">
-                                                <Truck className="w-3 h-3 text-slate-500" />
-                                                {addr.shipping_courier || 'Ekspedisi'} {addr.shipping_service ? `(${addr.shipping_service})` : ''}
-                                              </span>
-                                            </div>
-                                          </div>
-                                        </div>
+                                               {addr.group_name && (
+                                                 <span className={`text-[9px] font-black px-2 py-0.5 rounded border uppercase ${getGroupBadgeStyle(addr.group_name)}`}>
+                                                   Grup: {addr.group_name}
+                                                 </span>
+                                               )}
+                                             </div>
+                                             <span className="text-[10px] font-mono text-slate-400">
+                                               {addr.address_id}
+                                             </span>
+                                           </div>
 
-                                        {/* Action buttons inside expanded address card */}
-                                        <div className="pt-2 border-t border-slate-100 flex items-center justify-between gap-1">
-                                          <button
-                                            type="button"
-                                            onClick={() => handlePrintSingle(addr, customer)}
-                                            className="px-2 py-1 rounded-lg bg-pink-50 hover:bg-pink-100 text-pink-700 text-[11px] font-bold flex items-center gap-1 transition-colors"
-                                          >
-                                            <Printer className="w-3 h-3" />
-                                            <span>Cetak Label</span>
-                                          </button>
+                                           <div className="pt-1.5 text-xs space-y-0.5">
+                                             <div className="font-bold text-slate-900">
+                                               {addr.recipient_name}
+                                             </div>
+                                             <div className="font-mono text-slate-600 text-[11px]">
+                                               {addr.recipient_phone}
+                                             </div>
+                                             <div className="text-[11px] text-slate-700 line-clamp-2">
+                                               {addr.full_address}
+                                             </div>
+                                             <div className="text-[10px] text-slate-500 font-medium">
+                                               {[addr.district, addr.city, addr.province, addr.postal_code].filter(Boolean).join(', ')}
+                                             </div>
+                                             <div className="pt-1 flex items-center gap-1.5 flex-wrap">
+                                               <span className="text-[10px] font-semibold px-2 py-0.5 rounded bg-slate-100 text-slate-800 flex items-center gap-1">
+                                                 <Truck className="w-3 h-3 text-slate-500" />
+                                                 {addr.shipping_courier || 'Ekspedisi'} {addr.shipping_service ? `(${addr.shipping_service})` : ''}
+                                               </span>
+                                               {addr.shipping_notes && (
+                                                 <span className="text-[10px] font-medium px-2 py-0.5 rounded bg-amber-50 text-amber-800 border border-amber-200/60 truncate max-w-[200px]" title={addr.shipping_notes}>
+                                                   Catatan: {addr.shipping_notes}
+                                                 </span>
+                                               )}
+                                             </div>
+                                           </div>
+                                         </div>
 
-                                          <div className="flex items-center gap-1">
-                                            <button
-                                              type="button"
-                                              title="Edit Alamat Ini"
-                                              onClick={() => onOpenEditAddress(addr)}
-                                              className="p-1 rounded-lg border border-slate-200 hover:bg-slate-100 text-slate-700 transition-colors"
-                                            >
-                                              <Edit2 className="w-3 h-3" />
-                                            </button>
-                                            {onDeleteAddress && (
-                                              <button
-                                                type="button"
-                                                title="Hapus Alamat Ini"
-                                                onClick={() => onDeleteAddress(addr)}
-                                                className="p-1 rounded-lg hover:bg-rose-50 text-slate-400 hover:text-rose-600 transition-colors"
-                                              >
-                                                <Trash2 className="w-3 h-3" />
-                                              </button>
-                                            )}
-                                          </div>
-                                        </div>
-                                      </div>
-                                    );
-                                  })}
+                                         {/* Action buttons inside expanded address card + Info Pengirim */}
+                                         <div className="pt-2 border-t border-slate-100 flex items-center justify-between gap-1.5">
+                                           <button
+                                             type="button"
+                                             onClick={() => handlePrintSingle(addr, customer)}
+                                             className="px-2 py-1 rounded-lg bg-pink-50 hover:bg-pink-100 text-pink-700 text-[11px] font-bold flex items-center gap-1 transition-colors shrink-0 shadow-2xs"
+                                           >
+                                             <Printer className="w-3 h-3" />
+                                             <span>Cetak Label</span>
+                                           </button>
+
+                                           {/* Info Pengirim (Ditambahkan sesuai permintaan gambar) */}
+                                           {isDropship ? (
+                                             <div 
+                                               className="flex-1 min-w-0 px-2 py-1 rounded-lg bg-purple-50 border border-purple-200 text-purple-900 flex items-center gap-1 text-[10px] truncate"
+                                               title={`Pengirim Dropship: ${addr.dropship_sender_name || 'Dropship'} ${addr.dropship_sender_phone ? `(${addr.dropship_sender_phone})` : ''} ${addr.dropship_sender_city ? `· Asal: ${addr.dropship_sender_city}` : ''}`}
+                                             >
+                                               <span className="font-black text-[9px] uppercase px-1 py-0.2 rounded bg-purple-200 text-purple-800 shrink-0">
+                                                 Pengirim:
+                                               </span>
+                                               <span className="font-bold truncate text-[11px] text-purple-950">
+                                                 {addr.dropship_sender_name || 'Dropship'}
+                                               </span>
+                                               {addr.dropship_sender_phone && (
+                                                 <span className="font-mono text-purple-700 text-[10px] shrink-0 hidden sm:inline">
+                                                   ({addr.dropship_sender_phone})
+                                                 </span>
+                                               )}
+                                             </div>
+                                           ) : (
+                                             <div 
+                                               className="flex-1 min-w-0 px-2 py-1 rounded-lg bg-slate-50 border border-slate-200 text-slate-600 flex items-center gap-1 text-[10px] truncate"
+                                               title={`Pengirim Bawaan Toko: ${storeSettings?.store_name || 'Yaxiya Jewelry'}`}
+                                             >
+                                               <span className="font-bold text-[9px] uppercase px-1 py-0.2 rounded bg-slate-200 text-slate-700 shrink-0">
+                                                 Pengirim:
+                                               </span>
+                                               <span className="font-medium truncate text-slate-700 text-[10px]">
+                                                 {storeSettings?.store_name || 'Yaxiya Jewelry'}
+                                               </span>
+                                             </div>
+                                           )}
+
+                                           <div className="flex items-center gap-1 shrink-0">
+                                             <button
+                                               type="button"
+                                               title="Edit Alamat Ini"
+                                               onClick={() => onOpenEditAddress(addr)}
+                                               className="p-1 rounded-lg border border-slate-200 hover:bg-slate-100 text-slate-700 transition-colors"
+                                             >
+                                               <Edit2 className="w-3 h-3" />
+                                             </button>
+                                             {onDeleteAddress && (
+                                               <button
+                                                 type="button"
+                                                 title="Hapus Alamat Ini"
+                                                 onClick={() => onDeleteAddress(addr)}
+                                                 className="p-1 rounded-lg hover:bg-rose-50 text-slate-400 hover:text-rose-600 transition-colors"
+                                               >
+                                                 <Trash2 className="w-3 h-3" />
+                                               </button>
+                                             )}
+                                           </div>
+                                         </div>
+                                       </div>
+                                     );
+                                   })}
                                 </div>
                               )}
                             </div>

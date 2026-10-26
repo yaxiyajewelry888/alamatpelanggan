@@ -20,7 +20,10 @@ import {
   Tag,
   BookmarkPlus,
   Save,
-  Loader2
+  Loader2,
+  Home,
+  Building2,
+  Send
 } from 'lucide-react';
 import { YaxiyaLogo } from '../utils/logo';
 import { openPrintWindow } from '../utils/printHelper';
@@ -843,7 +846,13 @@ export const BulkPrintModal: React.FC<BulkPrintModalProps> = ({
                     {filteredAddresses.map(addr => {
                       const isChecked = selectedAddressIds.includes(addr.address_id);
                       const parentCust = customersMap[addr.customer_id];
-                      const isDropship = parentCust && addr.recipient_name.toLowerCase() !== parentCust.customer_name.toLowerCase();
+                      const cleanLabel = (addr.address_label || 'Rumah').trim();
+                      const lowerLabel = cleanLabel.toLowerCase();
+                      const isDropship = Boolean(addr.is_dropship) || 
+                        lowerLabel === 'dropship' || 
+                        Boolean(addr.dropship_sender_name && addr.dropship_sender_name.trim().length > 0);
+                      const isHome = lowerLabel === 'rumah';
+                      const isOffice = lowerLabel === 'kantor';
 
                       return (
                         <tr
@@ -876,9 +885,28 @@ export const BulkPrintModal: React.FC<BulkPrintModalProps> = ({
                           {/* Label & Group */}
                           <td className="py-2.5 px-3">
                             <div className="flex items-center gap-1.5 flex-wrap">
-                              <span className="font-bold text-slate-800">
-                                {addr.address_label}
-                              </span>
+                              {isDropship ? (
+                                <span className="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-md bg-purple-100 text-purple-900 border border-purple-200">
+                                  <Send className="w-2.5 h-2.5 text-purple-700" />
+                                  Dropship
+                                </span>
+                              ) : isHome ? (
+                                <span className="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-md bg-blue-100 text-blue-800 border border-blue-200">
+                                  <Home className="w-2.5 h-2.5 text-blue-600" />
+                                  Rumah
+                                </span>
+                              ) : isOffice ? (
+                                <span className="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-md bg-emerald-100 text-emerald-800 border border-emerald-200">
+                                  <Building2 className="w-2.5 h-2.5 text-emerald-600" />
+                                  Kantor
+                                </span>
+                              ) : (
+                                <span className="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-md bg-slate-100 text-slate-800 border border-slate-200">
+                                  <Tag className="w-2.5 h-2.5 text-slate-500" />
+                                  {cleanLabel}
+                                </span>
+                              )}
+
                               {addr.group_name && (
                                 <span className="text-[9px] font-bold px-1.5 py-0.2 rounded-full bg-purple-50 text-purple-700 border border-purple-200 inline-flex items-center gap-0.5">
                                   <Tag className="w-2.5 h-2.5 text-purple-500" />
@@ -886,7 +914,15 @@ export const BulkPrintModal: React.FC<BulkPrintModalProps> = ({
                                 </span>
                               )}
                             </div>
-                            <span className="font-mono text-[10px] text-slate-400">
+
+                            {/* Info Pengirim Dropship if present */}
+                            {isDropship && addr.dropship_sender_name && (
+                              <div className="text-[9px] text-purple-800 font-semibold mt-0.5 truncate" title={`Pengirim: ${addr.dropship_sender_name} ${addr.dropship_sender_phone ? `(${addr.dropship_sender_phone})` : ''}`}>
+                                Pengirim: <span className="font-bold">{addr.dropship_sender_name}</span>
+                              </div>
+                            )}
+
+                            <span className="font-mono text-[10px] text-slate-400 block mt-0.5">
                               {addr.address_id}
                             </span>
                           </td>

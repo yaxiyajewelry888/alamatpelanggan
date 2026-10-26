@@ -8,7 +8,19 @@
     <meta property="og:title" content="Yaxiya Jewelry — Shipping Address Manager" />
     <meta property="og:description" content="Aplikasi manajemen alamat pengiriman, multi-alamat pelanggan, jasa kirim Indonesia, cetak label thermal 100x150 mm dan HVS A4, serta sinkronisasi Google Sheets untuk Yaxiya Jewelry." />
     <meta property="og:type" content="website" />
-    <meta name="twitter:card" content="summary_large_image" />
+    <link rel="icon" id="app-favicon" type="image/png" href="/logo-yaxiya-pink.png" />
+    <link rel="apple-touch-icon" href="/logo-yaxiya-pink.png" />
+    <script>
+      (function() {
+        try {
+          var saved = localStorage.getItem('yaxiya_app_favicon');
+          if (saved) {
+            var icon = document.getElementById('app-favicon');
+            if (icon) icon.href = saved;
+          }
+        } catch (e) {}
+      })();
+    </script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">

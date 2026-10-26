@@ -1,7 +1,8 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { StoreSettings } from '../types';
-import { Sliders, Save, Upload, CheckCircle2, Store, MapPin, Phone, Image as ImageIcon, RotateCcw, Link as LinkIcon, ExternalLink, AlertTriangle, Trash2, Eye } from 'lucide-react';
+import { Sliders, Save, Upload, CheckCircle2, Store, MapPin, Phone, Image as ImageIcon, RotateCcw, Link as LinkIcon, ExternalLink, AlertTriangle, Trash2, Eye, Globe, Sparkles } from 'lucide-react';
 import { YaxiyaLogo } from '../utils/logo';
+import { updateFavicon, DEFAULT_FAVICON_URL } from '../utils/faviconHelper';
 
 interface StoreSettingsViewProps {
   onSettingsSaved: () => void;
@@ -30,6 +31,10 @@ export const StoreSettingsView: React.FC<StoreSettingsViewProps> = ({ onSettings
       .then(d => {
         if (d.success && d.data) {
           setSettings(d.data);
+          const activeLogo = (d.data.logo_mode === 'custom' || d.data.custom_logo_url) && d.data.custom_logo_url
+            ? d.data.custom_logo_url
+            : undefined;
+          updateFavicon(activeLogo);
         }
       })
       .catch(err => console.error('Error fetching settings:', err))
@@ -54,6 +59,9 @@ export const StoreSettingsView: React.FC<StoreSettingsViewProps> = ({ onSettings
         logo_mode: 'custom',
         custom_logo_url: base64
       }));
+      // Instantly update browser favicon in real-time
+      updateFavicon(base64);
+      window.dispatchEvent(new CustomEvent('favicon-updated', { detail: { custom_logo_url: base64 } }));
     };
     reader.readAsDataURL(file);
   };
@@ -73,6 +81,10 @@ export const StoreSettingsView: React.FC<StoreSettingsViewProps> = ({ onSettings
       custom_logo_url: cleanUrl,
       show_logo_on_print: true
     }));
+
+    // Instantly update browser favicon in real-time
+    updateFavicon(cleanUrl);
+    window.dispatchEvent(new CustomEvent('favicon-updated', { detail: { custom_logo_url: cleanUrl } }));
   };
 
   const handleSave = async (e: React.FormEvent) => {
@@ -89,6 +101,14 @@ export const StoreSettingsView: React.FC<StoreSettingsViewProps> = ({ onSettings
       const data = await res.json();
       if (data.success) {
         setSuccessMessage('Pengaturan toko & logo label berhasil disimpan dan langsung diterapkan ke seluruh label alamat.');
+        
+        // Sync favicon with saved settings
+        const activeLogo = settings.logo_mode === 'custom' && settings.custom_logo_url
+          ? settings.custom_logo_url
+          : undefined;
+        updateFavicon(activeLogo);
+        window.dispatchEvent(new CustomEvent('favicon-updated', { detail: { custom_logo_url: activeLogo } }));
+
         onSettingsSaved();
       } else {
         alert(data.error || 'Gagal menyimpan pengaturan');
@@ -167,7 +187,12 @@ export const StoreSettingsView: React.FC<StoreSettingsViewProps> = ({ onSettings
                     type="radio"
                     name="logo_mode"
                     checked={settings.logo_mode === 'custom'}
-                    onChange={() => setSettings(prev => ({ ...prev, logo_mode: 'custom' }))}
+                    onChange={() => {
+                      setSettings(prev => ({ ...prev, logo_mode: 'custom' }));
+                      const activeLogo = settings.custom_logo_url || DEFAULT_FAVICON_URL;
+                      updateFavicon(activeLogo);
+                      window.dispatchEvent(new CustomEvent('favicon-updated', { detail: { custom_logo_url: activeLogo } }));
+                    }}
                     className="text-pink-600"
                   />
                 </div>
@@ -191,7 +216,11 @@ export const StoreSettingsView: React.FC<StoreSettingsViewProps> = ({ onSettings
 
             {/* Option 2: Official Logo */}
             <div
-              onClick={() => setSettings(prev => ({ ...prev, logo_mode: 'official' }))}
+              onClick={() => {
+                setSettings(prev => ({ ...prev, logo_mode: 'official' }));
+                updateFavicon(DEFAULT_FAVICON_URL);
+                window.dispatchEvent(new CustomEvent('favicon-updated', { detail: { custom_logo_url: DEFAULT_FAVICON_URL } }));
+              }}
               className={`p-4 rounded-xl border cursor-pointer transition-all flex flex-col justify-between ${
                 settings.logo_mode === 'official'
                   ? 'border-pink-500 bg-pink-50/60 ring-2 ring-pink-500/20 shadow-xs'
@@ -205,7 +234,11 @@ export const StoreSettingsView: React.FC<StoreSettingsViewProps> = ({ onSettings
                     type="radio"
                     name="logo_mode"
                     checked={settings.logo_mode === 'official'}
-                    onChange={() => setSettings(prev => ({ ...prev, logo_mode: 'official' }))}
+                    onChange={() => {
+                      setSettings(prev => ({ ...prev, logo_mode: 'official' }));
+                      updateFavicon(DEFAULT_FAVICON_URL);
+                      window.dispatchEvent(new CustomEvent('favicon-updated', { detail: { custom_logo_url: DEFAULT_FAVICON_URL } }));
+                    }}
                     className="text-pink-600"
                   />
                 </div>
@@ -220,7 +253,11 @@ export const StoreSettingsView: React.FC<StoreSettingsViewProps> = ({ onSettings
 
             {/* Option 3: None / Text Only */}
             <div
-              onClick={() => setSettings(prev => ({ ...prev, logo_mode: 'none' }))}
+              onClick={() => {
+                setSettings(prev => ({ ...prev, logo_mode: 'none' }));
+                updateFavicon(DEFAULT_FAVICON_URL);
+                window.dispatchEvent(new CustomEvent('favicon-updated', { detail: { custom_logo_url: DEFAULT_FAVICON_URL } }));
+              }}
               className={`p-4 rounded-xl border cursor-pointer transition-all flex flex-col justify-between ${
                 settings.logo_mode === 'none'
                   ? 'border-pink-500 bg-pink-50/60 ring-2 ring-pink-500/20 shadow-xs'
@@ -234,7 +271,11 @@ export const StoreSettingsView: React.FC<StoreSettingsViewProps> = ({ onSettings
                     type="radio"
                     name="logo_mode"
                     checked={settings.logo_mode === 'none'}
-                    onChange={() => setSettings(prev => ({ ...prev, logo_mode: 'none' }))}
+                    onChange={() => {
+                      setSettings(prev => ({ ...prev, logo_mode: 'none' }));
+                      updateFavicon(DEFAULT_FAVICON_URL);
+                      window.dispatchEvent(new CustomEvent('favicon-updated', { detail: { custom_logo_url: DEFAULT_FAVICON_URL } }));
+                    }}
                     className="text-pink-600"
                   />
                 </div>
@@ -344,8 +385,10 @@ export const StoreSettingsView: React.FC<StoreSettingsViewProps> = ({ onSettings
                   <button
                     type="button"
                     onClick={() => {
-                      setSettings(prev => ({ ...prev, custom_logo_url: '' }));
+                      setSettings(prev => ({ ...prev, custom_logo_url: '', logo_mode: 'official' }));
                       setImageLoadError(false);
+                      updateFavicon(DEFAULT_FAVICON_URL);
+                      window.dispatchEvent(new CustomEvent('favicon-updated', { detail: { custom_logo_url: DEFAULT_FAVICON_URL } }));
                     }}
                     className="text-xs text-rose-600 hover:text-rose-700 font-semibold flex items-center gap-1 self-end md:self-auto"
                   >
@@ -365,6 +408,56 @@ export const StoreSettingsView: React.FC<StoreSettingsViewProps> = ({ onSettings
               )}
             </div>
           )}
+
+          {/* LIVE BROWSER TAB FAVICON SYNC CARD */}
+          <div className="p-4 rounded-xl bg-gradient-to-r from-pink-50/80 via-white to-pink-50/40 border border-pink-200/90 shadow-2xs space-y-2.5">
+            <div className="flex items-center justify-between gap-2 flex-wrap">
+              <div className="flex items-center gap-2">
+                <div className="w-7 h-7 rounded-lg bg-pink-100 text-pink-700 flex items-center justify-center shrink-0">
+                  <Globe className="w-4 h-4" />
+                </div>
+                <div>
+                  <h4 className="text-xs font-bold text-slate-900 flex items-center gap-1.5">
+                    <span>Favicon Tab Browser (Otomatis Sinkron)</span>
+                    <Sparkles className="w-3.5 h-3.5 text-pink-600 animate-pulse" />
+                  </h4>
+                  <p className="text-[11px] text-slate-500">
+                    Favicon tab browser website otomatis menyesuaikan dengan logo label toko ini setiap kali diubah.
+                  </p>
+                </div>
+              </div>
+              <span className="inline-flex items-center gap-1.5 text-[10px] font-bold px-2.5 py-1 rounded-full bg-emerald-100 text-emerald-800 border border-emerald-200">
+                <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                Real-Time Synced
+              </span>
+            </div>
+
+            {/* Browser Tab Simulation Preview */}
+            <div className="bg-slate-200/80 p-2.5 rounded-lg border border-slate-300/80 flex items-center gap-3">
+              <div className="bg-white px-3 py-1.5 rounded-t-lg border-t-2 border-pink-600 shadow-xs flex items-center gap-2 max-w-sm">
+                <div className="w-4 h-4 rounded bg-slate-50 flex items-center justify-center shrink-0 overflow-hidden border border-slate-100">
+                  <img
+                    src={
+                      (settings.logo_mode === 'custom' || settings.custom_logo_url) && settings.custom_logo_url && !imageLoadError
+                        ? settings.custom_logo_url
+                        : DEFAULT_FAVICON_URL
+                    }
+                    alt="Favicon"
+                    className="w-3.5 h-3.5 object-contain"
+                    onError={(e) => {
+                      (e.currentTarget as HTMLImageElement).src = DEFAULT_FAVICON_URL;
+                    }}
+                  />
+                </div>
+                <span className="text-[11px] font-semibold text-slate-800 truncate">
+                  {settings.store_name || 'Yaxiya Jewelry'} — Shipping Address Manager
+                </span>
+              </div>
+              <span className="text-[10px] text-slate-500 font-medium hidden sm:inline">
+                ← Tampilan favicon pada tab browser Anda saat ini
+              </span>
+            </div>
+          </div>
 
           {/* SIMULATION PREVIEW: Real Header Label for both Thermal & A4 */}
           <div className="pt-2 border-t border-slate-100 space-y-3">
