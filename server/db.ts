@@ -51,12 +51,21 @@ export interface Courier {
 export interface PrintRecord {
   print_id: string;
   customer_id: string;
+  customer_name?: string;
   address_id: string;
   recipient_name: string;
+  recipient_phone?: string;
+  full_address?: string;
+  city?: string;
+  province?: string;
   shipping_courier: string;
+  shipping_service?: string;
   label_format: 'thermal_100x150' | 'hvs_a4_3part';
   copies: number;
   printed_at: string;
+  is_dropship?: boolean;
+  sender_name?: string;
+  sender_phone?: string;
 }
 
 export interface SyncTask {
@@ -123,13 +132,24 @@ export const PERMANENT_SPREADSHEET_ID = '1Q0xxgKTDv4AhSQKt2mJdqnuxm1U3AuWAHJ89Ar
 
 export function getCurrentDateFormatted(): string {
   const now = new Date();
-  const pad = (n: number) => n.toString().padStart(2, '0');
-  const d = pad(now.getDate());
-  const m = pad(now.getMonth() + 1);
-  const y = now.getFullYear();
-  const hh = pad(now.getHours());
-  const mm = pad(now.getMinutes());
-  const ss = pad(now.getSeconds());
+  // Ensure formatted in Indonesian Western Time (Asia/Jakarta / WIB, UTC+7)
+  const formatter = new Intl.DateTimeFormat('en-GB', {
+    timeZone: 'Asia/Jakarta',
+    day: '2-digit',
+    month: '2-digit',
+    year: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+    second: '2-digit',
+    hour12: false
+  });
+  const parts = formatter.formatToParts(now);
+  const d = parts.find(p => p.type === 'day')?.value || '01';
+  const m = parts.find(p => p.type === 'month')?.value || '01';
+  const y = parts.find(p => p.type === 'year')?.value || '2026';
+  const hh = parts.find(p => p.type === 'hour')?.value || '00';
+  const mm = parts.find(p => p.type === 'minute')?.value || '00';
+  const ss = parts.find(p => p.type === 'second')?.value || '00';
   return `${d}-${m}-${y} ${hh}:${mm}:${ss}`;
 }
 
@@ -938,10 +958,46 @@ class DatabaseEngine {
 
   // --- PRINT HISTORY ---
   public recordPrint(record: Omit<PrintRecord, 'print_id' | 'printed_at'>): PrintRecord {
+    // Prevent immediate double recording if identical address_id was printed within last 5 seconds
+    const recent = this.data.print_history[0];
+    if (
+      recent && 
+      recent.address_id === record.address_id && 
+      recent.label_format === record.label_format
+    ) {
+      const matchTimestamp = recent.print_id.match(/PRN-(\d+)-/);
+      if (matchTimestamp && Math.abs(Date.now() - parseInt(matchTimestamp[1], 10)) < 5000) {
+        return recent;
+      }
+    }
+
+    // Auto-enrich shipping data from database if not explicitly provided
+    let enriched = { ...record };
+    const addr = this.getAddressById(record.address_id);
+    const cust = this.getCustomerById(record.customer_id || addr?.customer_id || '');
+
+    if (addr) {
+      if (!enriched.recipient_phone) enriched.recipient_phone = addr.recipient_phone;
+      if (!enriched.full_address) enriched.full_address = addr.full_address;
+      if (!enriched.city) enriched.city = addr.city;
+      if (!enriched.province) enriched.province = addr.province;
+      if (!enriched.shipping_service) enriched.shipping_service = addr.shipping_service;
+      if (enriched.is_dropship === undefined) {
+        enriched.is_dropship = Boolean(addr.is_dropship || addr.dropship_sender_name);
+      }
+      if (!enriched.sender_name && addr.is_dropship && addr.dropship_sender_name) {
+        enriched.sender_name = addr.dropship_sender_name;
+        enriched.sender_phone = addr.dropship_sender_phone;
+      }
+    }
+    if (cust && !enriched.customer_name) {
+      enriched.customer_name = cust.customer_name;
+    }
+
     const print_id = `PRN-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
     const printed_at = getCurrentDateFormatted();
     const fullRecord: PrintRecord = {
-      ...record,
+      ...enriched,
       print_id,
       printed_at
     };
@@ -954,8 +1010,28 @@ class DatabaseEngine {
     return fullRecord;
   }
 
-  public getPrintHistory(limit = 100): PrintRecord[] {
-    return this.data.print_history.slice(0, limit);
+  public getPrintHistory(limit = 1000): PrintRecord[] {
+    const list = this.data.print_history.slice(0, limit);
+    // Enrich historical records if missing details
+    return list.map(rec => {
+      if (rec.recipient_phone && rec.city && rec.customer_name) {
+        return rec;
+      }
+      const addr = this.getAddressById(rec.address_id);
+      const cust = this.getCustomerById(rec.customer_id || addr?.customer_id || '');
+      return {
+        ...rec,
+        customer_name: rec.customer_name || cust?.customer_name || undefined,
+        recipient_phone: rec.recipient_phone || addr?.recipient_phone || undefined,
+        full_address: rec.full_address || addr?.full_address || undefined,
+        city: rec.city || addr?.city || undefined,
+        province: rec.province || addr?.province || undefined,
+        shipping_service: rec.shipping_service || addr?.shipping_service || undefined,
+        is_dropship: rec.is_dropship !== undefined ? rec.is_dropship : (addr?.is_dropship || Boolean(addr?.dropship_sender_name)),
+        sender_name: rec.sender_name || (addr?.dropship_sender_name || undefined),
+        sender_phone: rec.sender_phone || (addr?.dropship_sender_phone || undefined)
+      };
+    });
   }
 
   // --- ACTIVITY LOGS ---

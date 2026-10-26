@@ -758,14 +758,22 @@ apiRouter.post('/print-history', (req: Request, res: Response) => {
     const items = Array.isArray(req.body) ? req.body : [req.body];
     const results = [];
     for (const item of items) {
-      const { customer_id, address_id, recipient_name, shipping_courier, label_format, copies } = item;
       const rec = db.recordPrint({
-        customer_id: customer_id || 'YX-UNKNOWN',
-        address_id: address_id || 'ADDR-UNKNOWN',
-        recipient_name: recipient_name || 'Pelanggan',
-        shipping_courier: shipping_courier || '-',
-        label_format: label_format || 'thermal_100x150',
-        copies: parseInt(copies, 10) || 1
+        customer_id: item.customer_id || '',
+        customer_name: item.customer_name,
+        address_id: item.address_id || '',
+        recipient_name: item.recipient_name || '',
+        recipient_phone: item.recipient_phone,
+        full_address: item.full_address,
+        city: item.city,
+        province: item.province,
+        shipping_courier: item.shipping_courier || '',
+        shipping_service: item.shipping_service,
+        label_format: item.label_format || 'thermal_100x150',
+        copies: parseInt(item.copies, 10) || 1,
+        is_dropship: item.is_dropship,
+        sender_name: item.sender_name,
+        sender_phone: item.sender_phone
       });
       results.push(rec);
     }
@@ -804,25 +812,6 @@ apiRouter.get('/print-page', (req: Request, res: Response) => {
       targetAddresses = db.getAddresses(undefined, false).slice(0, 1);
     }
 
-    // Multiply by copies
-    const printItems: Address[] = [];
-    for (const addr of targetAddresses) {
-      for (let c = 0; c < copies; c++) {
-        printItems.push(addr);
-      }
-      // Record print
-      try {
-        db.recordPrint({
-          customer_id: addr.customer_id,
-          address_id: addr.address_id,
-          recipient_name: addr.recipient_name,
-          shipping_courier: addr.shipping_courier || 'Ekspedisi',
-          label_format: format,
-          copies
-        });
-      } catch {}
-    }
-
     const getItemSenderDetails = (item: Address) => {
       const itemIsDropship = isDropship || Boolean(item.is_dropship) || Boolean(item.dropship_sender_name && item.dropship_sender_name.trim()) || item.address_label === 'Dropship';
       const senderName = itemIsDropship
@@ -843,6 +832,34 @@ apiRouter.get('/print-page', (req: Request, res: Response) => {
         senderAddress
       };
     };
+
+    // Multiply by copies & record print
+    const printItems: Address[] = [];
+    for (const addr of targetAddresses) {
+      for (let c = 0; c < copies; c++) {
+        printItems.push(addr);
+      }
+      // Record print with full enriched details
+      try {
+        const { itemIsDropship, senderName, senderPhone } = getItemSenderDetails(addr);
+        db.recordPrint({
+          customer_id: addr.customer_id,
+          address_id: addr.address_id,
+          recipient_name: addr.recipient_name,
+          recipient_phone: addr.recipient_phone,
+          full_address: addr.full_address,
+          city: addr.city,
+          province: addr.province,
+          shipping_courier: addr.shipping_courier || 'Ekspedisi',
+          shipping_service: addr.shipping_service || '',
+          label_format: format,
+          copies,
+          is_dropship: itemIsDropship,
+          sender_name: senderName,
+          sender_phone: senderPhone
+        });
+      } catch {}
+    }
 
     const now = new Date();
     const day = String(now.getDate()).padStart(2, '0');

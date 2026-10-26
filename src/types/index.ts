@@ -50,12 +50,21 @@ export interface Courier {
 export interface PrintRecord {
   print_id: string;
   customer_id: string;
+  customer_name?: string;
   address_id: string;
   recipient_name: string;
+  recipient_phone?: string;
+  full_address?: string;
+  city?: string;
+  province?: string;
   shipping_courier: string;
+  shipping_service?: string;
   label_format: 'thermal_100x150' | 'hvs_a4_3part';
   copies: number;
   printed_at: string;
+  is_dropship?: boolean;
+  sender_name?: string;
+  sender_phone?: string;
 }
 
 export interface ActivityLog {
