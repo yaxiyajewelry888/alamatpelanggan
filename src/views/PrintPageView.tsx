@@ -58,7 +58,6 @@ export const PrintPageView: React.FC<PrintPageViewProps> = ({
 
   // Save Dropship Address to Multi-Address state
   const [saveDropshipMode, setSaveDropshipMode] = useState<'create_new' | 'update_existing'>('create_new');
-  const [autoSaveDropshipOnPrint, setAutoSaveDropshipOnPrint] = useState<boolean>(true);
   const [isSavingDropship, setIsSavingDropship] = useState<boolean>(false);
   const [dropshipSaveSuccessMsg, setDropshipSaveSuccessMsg] = useState<string | null>(null);
   const [savedDropshipIds, setSavedDropshipIds] = useState<Set<string>>(new Set());
@@ -494,18 +493,6 @@ export const PrintPageView: React.FC<PrintPageViewProps> = ({
     setPrintSuccessNotice(null);
 
     try {
-      // Auto-save dropship if enabled and sender info is filled
-      if (isDropshipMode && autoSaveDropshipOnPrint && dropshipSenderName.trim() && dropshipSenderPhone.trim()) {
-        const unsaved = selectedAddresses.find(a => !savedDropshipIds.has(a.address_id));
-        if (unsaved) {
-          try {
-            await handleSaveDropshipAddress(unsaved, true);
-          } catch (e) {
-            console.warn('Auto-save dropship on print:', e);
-          }
-        }
-      }
-
       // 1. Immediately open new browser window to print labels
       const printResult = openPrintWindow({
         addressIds: selectedIds,
@@ -889,17 +876,6 @@ export const PrintPageView: React.FC<PrintPageViewProps> = ({
                       </>
                     )}
                   </button>
-
-                  {/* Auto-save toggle checkbox */}
-                  <label className="flex items-center gap-2 cursor-pointer pt-1 border-t border-purple-100 text-[11px] text-slate-700">
-                    <input
-                      type="checkbox"
-                      checked={autoSaveDropshipOnPrint}
-                      onChange={e => setAutoSaveDropshipOnPrint(e.target.checked)}
-                      className="w-3.5 h-3.5 rounded text-purple-600 focus:ring-purple-500 border-purple-300"
-                    />
-                    <span>Otomatis simpan ke multi-alamat & Spreadsheet saat klik <strong>Cetak Label</strong></span>
-                  </label>
 
                   {/* Notifikasi Sukses Simpan */}
                   {dropshipSaveSuccessMsg && (
