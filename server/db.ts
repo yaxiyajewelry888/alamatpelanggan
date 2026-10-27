@@ -125,6 +125,8 @@ interface DatabaseSchema {
   settings?: StoreSettings;
   apps_script_url?: string;
   spreadsheet_id?: string;
+  deleted_customer_ids?: string[];
+  deleted_customer_names?: string[];
 }
 
 export const PERMANENT_APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbymST6-L81TVqQ1XHvf2pi68pllwjut4BQtidADPi-jIaoEDf45HsIEBCxMkMrf7DwV5w/exec';
@@ -268,6 +270,8 @@ class DatabaseEngine {
         this.data.print_history = this.data.print_history || [];
         this.data.sync_queue = this.data.sync_queue || [];
         this.data.activity_logs = this.data.activity_logs || [];
+        this.data.deleted_customer_ids = this.data.deleted_customer_ids || [];
+        this.data.deleted_customer_names = this.data.deleted_customer_names || [];
 
         // Ensure permanent Apps Script & Spreadsheet ID are embedded
         this.data.apps_script_url = this.data.apps_script_url || PERMANENT_APPS_SCRIPT_URL;
@@ -298,6 +302,64 @@ class DatabaseEngine {
       }
     } else {
       this.seedInitialData();
+    }
+  }
+
+  // Tombstone helpers to prevent deleted customers from being resurrected on sync
+  public isCustomerDeleted(customerId?: string, customerName?: string, phone?: string): boolean {
+    const deletedIds = this.data.deleted_customer_ids || [];
+    const deletedNames = this.data.deleted_customer_names || [];
+
+    if (customerId) {
+      const cidUpper = customerId.trim().toUpperCase();
+      if (deletedIds.includes(cidUpper)) return true;
+      const baseId = cidUpper.replace(/_\d+$/, '');
+      if (baseId !== cidUpper && deletedIds.includes(baseId)) return true;
+    }
+
+    if (customerName) {
+      const nameNorm = customerName.trim().toLowerCase();
+      if (nameNorm && deletedNames.some(dn => dn === nameNorm || (dn.length > 5 && nameNorm.includes(dn)))) {
+        return true;
+      }
+    }
+
+    return false;
+  }
+
+  public recordCustomerDeletion(customerId: string, customerName?: string): void {
+    if (!this.data.deleted_customer_ids) this.data.deleted_customer_ids = [];
+    if (!this.data.deleted_customer_names) this.data.deleted_customer_names = [];
+
+    const cidUpper = customerId.trim().toUpperCase();
+    if (!this.data.deleted_customer_ids.includes(cidUpper)) {
+      this.data.deleted_customer_ids.push(cidUpper);
+    }
+    const baseId = cidUpper.replace(/_\d+$/, '');
+    if (baseId !== cidUpper && !this.data.deleted_customer_ids.includes(baseId)) {
+      const hasOther = this.data.customers.some(c => c.customer_id.trim().toUpperCase() === baseId);
+      if (!hasOther) {
+        this.data.deleted_customer_ids.push(baseId);
+      }
+    }
+
+    if (customerName) {
+      const nameNorm = customerName.trim().toLowerCase();
+      if (nameNorm && !this.data.deleted_customer_names.includes(nameNorm)) {
+        this.data.deleted_customer_names.push(nameNorm);
+      }
+    }
+  }
+
+  public unrecordCustomerDeletion(customerId: string, customerName?: string): void {
+    const cidUpper = customerId.trim().toUpperCase();
+    const baseId = cidUpper.replace(/_\d+$/, '');
+    if (this.data.deleted_customer_ids) {
+      this.data.deleted_customer_ids = this.data.deleted_customer_ids.filter(id => id !== cidUpper && id !== baseId);
+    }
+    if (customerName && this.data.deleted_customer_names) {
+      const nameNorm = customerName.trim().toLowerCase();
+      this.data.deleted_customer_names = this.data.deleted_customer_names.filter(n => n !== nameNorm);
     }
   }
 
@@ -372,6 +434,9 @@ class DatabaseEngine {
     for (const a of this.data.addresses) {
       if (!a.customer_id || a.status === 'deleted') continue;
       const cidUpper = a.customer_id.trim().toUpperCase();
+      if (this.isCustomerDeleted(a.customer_id, a.recipient_name, a.recipient_phone)) {
+        continue;
+      }
       if (!existingMap.has(cidUpper)) {
         const newCust: Customer = {
           customer_id: a.customer_id.trim(),
@@ -435,6 +500,8 @@ class DatabaseEngine {
     if (existing) {
       throw new Error(`ID Pelanggan "${finalId}" sudah digunakan oleh "${existing.customer_name}". Gunakan ID lain.`);
     }
+    // If customer was previously deleted, unrecord from tombstones
+    this.unrecordCustomerDeletion(finalId, input.customer_name);
 
     const timestamp = getCurrentDateFormatted();
     const finalGroup = (input.group_name || '').trim().toUpperCase();
@@ -547,7 +614,7 @@ class DatabaseEngine {
     return customer;
   }
 
-  public deleteCustomer(id: string): { success: boolean; customer_id: string } {
+  public deleteCustomer(id: string): { success: boolean; customer_id: string; customer_name: string } {
     const customer = this.getCustomerById(id);
     if (!customer) throw new Error(`Pelanggan dengan ID "${id}" tidak ditemukan.`);
 
@@ -555,45 +622,78 @@ class DatabaseEngine {
     const customerId = customer.customer_id;
     const idUpper = id.trim().toUpperCase();
 
-    // Hard delete ONLY this selected customer from database memory & file
-    this.data.customers = this.data.customers.filter(c => c.customer_id.trim().toUpperCase() !== idUpper);
+    // Record tombstone so it can NEVER be resurrected upon sync or spreadsheet pull!
+    this.recordCustomerDeletion(customerId, customerName);
 
-    // Hard delete associated addresses belonging ONLY to this customer
-    const relatedAddresses = this.data.addresses.filter(a => a.customer_id.trim().toUpperCase() === idUpper);
+    // Hard delete ONLY this selected customer from database memory & file
+    this.data.customers = this.data.customers.filter(c => 
+      c.customer_id.trim().toUpperCase() !== idUpper && 
+      c.customer_name.trim().toLowerCase() !== customerName.trim().toLowerCase()
+    );
+
+    // Hard delete associated addresses belonging to this customer
+    const relatedAddresses = this.data.addresses.filter(a => 
+      a.customer_id.trim().toUpperCase() === idUpper || 
+      a.recipient_name.trim().toLowerCase() === customerName.trim().toLowerCase()
+    );
     for (const addr of relatedAddresses) {
       this.enqueueSync('ALAMAT_PENGIRIMAN', addr.address_id, 'DELETE', { address_id: addr.address_id, customer_id: customerId });
     }
-    this.data.addresses = this.data.addresses.filter(a => a.customer_id.trim().toUpperCase() !== idUpper);
+    this.data.addresses = this.data.addresses.filter(a => 
+      a.customer_id.trim().toUpperCase() !== idUpper && 
+      a.recipient_name.trim().toLowerCase() !== customerName.trim().toLowerCase()
+    );
 
     this.logActivity('HAPUS_PELANGGAN', `Pelanggan dihapus permanen: ${customerName} (${customerId}) dan seluruh alamat pengiriman terkait dihapus`, customerId);
-    this.enqueueSync('PELANGGAN', customerId, 'DELETE', { customer_id: customerId });
+    this.enqueueSync('PELANGGAN', customerId, 'DELETE', { customer_id: customerId, customer_name: customerName });
 
     this.save();
-    return { success: true, customer_id: id };
+    return { success: true, customer_id: id, customer_name: customerName };
   }
 
-  public deleteCustomersBulk(ids: string[]): { success: boolean; deletedCount: number; deletedIds: string[] } {
-    if (!ids || ids.length === 0) return { success: true, deletedCount: 0, deletedIds: [] };
+  public deleteCustomersBulk(ids: string[]): { success: boolean; deletedCount: number; deletedIds: string[]; deletedItems: Array<{ customer_id: string; customer_name: string }> } {
+    if (!ids || ids.length === 0) return { success: true, deletedCount: 0, deletedIds: [], deletedItems: [] };
     const idSet = new Set(ids.map(x => x.trim().toUpperCase()));
     const toDeleteCusts = this.data.customers.filter(c => idSet.has(c.customer_id.trim().toUpperCase()));
     
+    // Record tombstones for all deleted customers
+    for (const c of toDeleteCusts) {
+      this.recordCustomerDeletion(c.customer_id, c.customer_name);
+    }
+
+    const nameSet = new Set(toDeleteCusts.map(c => c.customer_name.trim().toLowerCase()));
+
     // Hard delete ONLY selected customers
-    this.data.customers = this.data.customers.filter(c => !idSet.has(c.customer_id.trim().toUpperCase()));
+    this.data.customers = this.data.customers.filter(c => 
+      !idSet.has(c.customer_id.trim().toUpperCase()) && 
+      !nameSet.has(c.customer_name.trim().toLowerCase())
+    );
     
     // Delete addresses belonging ONLY to these selected customers
-    const relatedAddresses = this.data.addresses.filter(a => idSet.has(a.customer_id.trim().toUpperCase()));
+    const relatedAddresses = this.data.addresses.filter(a => 
+      idSet.has(a.customer_id.trim().toUpperCase()) || 
+      nameSet.has(a.recipient_name.trim().toLowerCase())
+    );
     for (const addr of relatedAddresses) {
       this.enqueueSync('ALAMAT_PENGIRIMAN', addr.address_id, 'DELETE', { address_id: addr.address_id, customer_id: addr.customer_id });
     }
-    this.data.addresses = this.data.addresses.filter(a => !idSet.has(a.customer_id.trim().toUpperCase()));
+    this.data.addresses = this.data.addresses.filter(a => 
+      !idSet.has(a.customer_id.trim().toUpperCase()) && 
+      !nameSet.has(a.recipient_name.trim().toLowerCase())
+    );
 
     for (const c of toDeleteCusts) {
-      this.enqueueSync('PELANGGAN', c.customer_id, 'DELETE', { customer_id: c.customer_id });
+      this.enqueueSync('PELANGGAN', c.customer_id, 'DELETE', { customer_id: c.customer_id, customer_name: c.customer_name });
     }
 
     this.logActivity('HAPUS_PELANGGAN', `${toDeleteCusts.length} pelanggan terpilih dihapus permanen`);
     this.save();
-    return { success: true, deletedCount: toDeleteCusts.length, deletedIds: toDeleteCusts.map(c => c.customer_id) };
+    return { 
+      success: true, 
+      deletedCount: toDeleteCusts.length, 
+      deletedIds: toDeleteCusts.map(c => c.customer_id),
+      deletedItems: toDeleteCusts.map(c => ({ customer_id: c.customer_id, customer_name: c.customer_name }))
+    };
   }
 
   // --- ADDRESS METHODS ---
@@ -1226,6 +1326,9 @@ class DatabaseEngine {
 
       for (const rawCust of payload.customers) {
         if (!rawCust || !rawCust.customer_id || rawCust.status === 'deleted') continue;
+        if (this.isCustomerDeleted(rawCust.customer_id, rawCust.customer_name, rawCust.primary_phone)) {
+          continue;
+        }
         let cid = String(rawCust.customer_id).trim();
         const cidUpper = cid.toUpperCase();
 
@@ -1237,6 +1340,9 @@ class DatabaseEngine {
           }
           // If different customer had accidental ID clash, make unique
           cid = `${cid}_2`;
+        }
+        if (this.isCustomerDeleted(cid, rawCust.customer_name, rawCust.primary_phone)) {
+          continue;
         }
         seenCustIds.add(cid.toUpperCase());
 
@@ -1257,6 +1363,7 @@ class DatabaseEngine {
       // Preserve any active local customers that were not in remote payload
       for (const existingCust of this.data.customers) {
         if (!existingCust || existingCust.status === 'deleted') continue;
+        if (this.isCustomerDeleted(existingCust.customer_id, existingCust.customer_name, existingCust.primary_phone)) continue;
         const existUpper = existingCust.customer_id.trim().toUpperCase();
         if (!seenCustIds.has(existUpper)) {
           uniqueCustomers.push(existingCust);
@@ -1273,6 +1380,9 @@ class DatabaseEngine {
 
       for (const rawAddr of payload.addresses) {
         if (!rawAddr || !rawAddr.address_id || rawAddr.status === 'deleted') continue;
+        if (this.isCustomerDeleted(rawAddr.customer_id, rawAddr.recipient_name, rawAddr.recipient_phone)) {
+          continue;
+        }
         const aid = String(rawAddr.address_id).trim();
         const aidUpper = aid.toUpperCase();
 

@@ -170,18 +170,25 @@ function doPost(e) {
     }
 
     if (action === 'deleteCustomer') {
-      deleteCustomerRow(payload.customer_id);
+      deleteCustomerRow(payload.customer_id, payload.customer_name);
       return jsonResponse({ success: true, message: 'Baris data pelanggan dan alamat terkait berhasil dihapus permanen dari Spreadsheet.' });
     }
 
     if (action === 'bulkDeleteCustomers') {
       var custIds = payload.customer_ids || [];
-      for (var b = 0; b < custIds.length; b++) {
-        deleteCustomerRow(custIds[b]);
+      var items = payload.items || [];
+      if (items && items.length > 0) {
+        for (var b = 0; b < items.length; b++) {
+          deleteCustomerRow(items[b].customer_id, items[b].customer_name);
+        }
+      } else {
+        for (var b = 0; b < custIds.length; b++) {
+          deleteCustomerRow(custIds[b]);
+        }
       }
       return jsonResponse({
         success: true,
-        message: custIds.length + ' baris pelanggan terpilih berhasil dihapus dari Spreadsheet.'
+        message: (items.length || custIds.length) + ' baris pelanggan terpilih berhasil dihapus dari Spreadsheet.'
       });
     }
 
@@ -849,28 +856,42 @@ function deleteCourierRow(courierId) {
 /**
  * Hapus Baris Pelanggan dan Alamat Terkait Secara Permanen dari Spreadsheet
  */
-function deleteCustomerRow(customerId) {
-  if (!customerId) return;
+function deleteCustomerRow(customerId, customerName) {
+  if (!customerId && !customerName) return;
   var ss = SpreadsheetApp.getActiveSpreadsheet();
   var custSheet = ss.getSheetByName(SHEET_CONFIG.PELANGGAN.name);
-  var id = String(customerId).trim().toUpperCase();
+  var id = customerId ? String(customerId).trim().toUpperCase() : '';
+  var baseId = id ? id.replace(/_\d+$/, '') : '';
+  var nameUpper = customerName ? String(customerName).trim().toUpperCase() : '';
 
   // 1. Hapus baris pelanggan dari sheet PELANGGAN
   if (custSheet && custSheet.getLastRow() > 1) {
-    var colA = custSheet.getRange(2, 1, custSheet.getLastRow() - 1, 1).getValues();
-    for (var i = colA.length - 1; i >= 0; i--) {
-      if (String(colA[i][0]).trim().toUpperCase() === id) {
+    var range = custSheet.getRange(2, 1, custSheet.getLastRow() - 1, 2).getValues();
+    for (var i = range.length - 1; i >= 0; i--) {
+      var rowCid = String(range[i][0] || '').trim().toUpperCase();
+      var rowName = String(range[i][1] || '').trim().toUpperCase();
+
+      var matchId = id && (rowCid === id || rowCid === baseId);
+      var matchName = nameUpper && (rowName === nameUpper || (nameUpper.length > 5 && rowName.indexOf(nameUpper) !== -1) || (rowName.length > 5 && nameUpper.indexOf(rowName) !== -1));
+
+      if ((nameUpper && matchName && (matchId || !id)) || (!nameUpper && matchId)) {
         custSheet.deleteRow(i + 2);
       }
     }
   }
 
-  // 2. Hapus SEMUA alamat pengiriman dengan customer_id yang sama dari sheet ALAMAT_PENGIRIMAN
+  // 2. Hapus SEMUA alamat pengiriman dengan customer_id / recipient_name yang cocok dari sheet ALAMAT_PENGIRIMAN
   var addrSheet = ss.getSheetByName(SHEET_CONFIG.ALAMAT_PENGIRIMAN.name);
   if (addrSheet && addrSheet.getLastRow() > 1) {
-    var colB = addrSheet.getRange(2, 2, addrSheet.getLastRow() - 1, 1).getValues();
-    for (var j = colB.length - 1; j >= 0; j--) {
-      if (String(colB[j][0]).trim().toUpperCase() === id) {
+    var addrRange = addrSheet.getRange(2, 1, addrSheet.getLastRow() - 1, 5).getValues();
+    for (var j = addrRange.length - 1; j >= 0; j--) {
+      var aCid = String(addrRange[j][1] || '').trim().toUpperCase();
+      var aRecip = String(addrRange[j][4] || '').trim().toUpperCase();
+
+      var matchAddrId = id && (aCid === id || aCid === baseId);
+      var matchAddrRecip = nameUpper && (aRecip === nameUpper || (nameUpper.length > 5 && aRecip.indexOf(nameUpper) !== -1) || (aRecip.length > 5 && nameUpper.indexOf(aRecip) !== -1));
+
+      if ((nameUpper && matchAddrRecip && (matchAddrId || !id)) || (!nameUpper && matchAddrId)) {
         addrSheet.deleteRow(j + 2);
       }
     }

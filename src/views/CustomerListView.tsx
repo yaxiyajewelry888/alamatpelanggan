@@ -181,7 +181,7 @@ export const CustomerListView: React.FC<CustomerListViewProps> = ({
   };
 
   const fetchAddressGroups = () => {
-    fetch('/api/address-groups?refresh=true')
+    fetch('/api/address-groups')
       .then(r => r.json())
       .then(d => {
         if (d.success && Array.isArray(d.data)) {
@@ -198,11 +198,30 @@ export const CustomerListView: React.FC<CustomerListViewProps> = ({
       fetchAddressGroups();
       fetchCustomers();
     };
+    const onCustomerDeleted = (e: any) => {
+      const deletedId = e.detail?.customerId;
+      if (deletedId) {
+        setCustomers(prev => prev.filter(c => c.customer_id !== deletedId));
+        setTotal(prev => Math.max(0, prev - 1));
+      }
+    };
+    const onCustomersBulkDeleted = (e: any) => {
+      const deletedIds = e.detail?.customerIds;
+      if (Array.isArray(deletedIds)) {
+        const idSet = new Set(deletedIds);
+        setCustomers(prev => prev.filter(c => !idSet.has(c.customer_id)));
+        setTotal(prev => Math.max(0, prev - deletedIds.length));
+      }
+    };
     window.addEventListener('groups-updated', onGroupsUpdated);
     window.addEventListener('addresses-updated', onGroupsUpdated);
+    window.addEventListener('customer-deleted', onCustomerDeleted);
+    window.addEventListener('customers-bulk-deleted', onCustomersBulkDeleted);
     return () => {
       window.removeEventListener('groups-updated', onGroupsUpdated);
       window.removeEventListener('addresses-updated', onGroupsUpdated);
+      window.removeEventListener('customer-deleted', onCustomerDeleted);
+      window.removeEventListener('customers-bulk-deleted', onCustomersBulkDeleted);
     };
   }, [refreshTrigger]);
 

@@ -114,18 +114,30 @@ export const PrintHistoryView: React.FC<PrintHistoryViewProps> = ({
     fetchHistory();
   }, [refreshTrigger]);
 
-  // Helpers for Local Indonesian date presets
+  // Helpers for Local Indonesian date presets (Asia/Jakarta WIB)
   const getTodayYmd = () => {
-    const now = new Date();
-    const pad = (n: number) => n.toString().padStart(2, '0');
-    return `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())}`;
+    try {
+      const formatter = new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Jakarta' });
+      return formatter.format(new Date());
+    } catch {
+      const now = new Date();
+      const pad = (n: number) => n.toString().padStart(2, '0');
+      return `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())}`;
+    }
   };
 
   const getYesterdayYmd = () => {
-    const d = new Date();
-    d.setDate(d.getDate() - 1);
-    const pad = (n: number) => n.toString().padStart(2, '0');
-    return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+    try {
+      const d = new Date();
+      d.setDate(d.getDate() - 1);
+      const formatter = new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Jakarta' });
+      return formatter.format(d);
+    } catch {
+      const d = new Date();
+      d.setDate(d.getDate() - 1);
+      const pad = (n: number) => n.toString().padStart(2, '0');
+      return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+    }
   };
 
   const handleSetPreset = (preset: 'today' | 'yesterday' | '7days' | '30days' | 'this_month' | 'all') => {

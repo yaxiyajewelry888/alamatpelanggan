@@ -404,7 +404,7 @@ class SyncService {
     }
   }
 
-  public async deleteCustomerFromSpreadsheet(customerId: string): Promise<void> {
+  public async deleteCustomerFromSpreadsheet(customerId: string, customerName?: string): Promise<void> {
     const idUpper = customerId.trim().toUpperCase();
     // 1. Mark pending tasks for this customer and ALL their shipping addresses as SYNCED FIRST
     const tasks = db.getPendingSyncTasks();
@@ -421,7 +421,11 @@ class SyncService {
         await fetch(appsScriptUrl, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ action: 'deleteCustomer', customer_id: customerId }),
+          body: JSON.stringify({ 
+            action: 'deleteCustomer', 
+            customer_id: customerId,
+            customer_name: customerName || ''
+          }),
           redirect: 'follow'
         });
       } catch (e: any) {
@@ -430,9 +434,14 @@ class SyncService {
     }
   }
 
-  public async deleteCustomersBulkFromSpreadsheet(customerIds: string[]): Promise<void> {
-    if (!customerIds || customerIds.length === 0) return;
+  public async deleteCustomersBulkFromSpreadsheet(items: string[] | Array<{ customer_id: string; customer_name?: string }>): Promise<void> {
+    if (!items || items.length === 0) return;
+    const normalizedItems: Array<{ customer_id: string; customer_name?: string }> = items.map(item => 
+      typeof item === 'string' ? { customer_id: item } : item
+    );
+    const customerIds = normalizedItems.map(x => x.customer_id);
     const idSet = new Set(customerIds.map(x => x.trim().toUpperCase()));
+
     // Mark pending tasks for these entities and their shipping addresses as SYNCED FIRST
     const tasks = db.getPendingSyncTasks();
     for (const t of tasks) {
@@ -452,7 +461,11 @@ class SyncService {
         await fetch(appsScriptUrl, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ action: 'bulkDeleteCustomers', customer_ids: customerIds }),
+          body: JSON.stringify({ 
+            action: 'bulkDeleteCustomers', 
+            items: normalizedItems,
+            customer_ids: customerIds 
+          }),
           redirect: 'follow'
         });
       } catch (e: any) {
@@ -551,6 +564,12 @@ class SyncService {
         });
       } catch (e: any) {
         console.warn('[SyncService] saveCourier error:', e.message);
+      }
+    }
+    const tasks = db.getPendingSyncTasks();
+    for (const t of tasks) {
+      if (t.entity_type === 'JASA_KIRIM' && t.entity_id === courier.courier_id) {
+        db.updateSyncTask(t.sync_id, 'SYNCED', null);
       }
     }
   }

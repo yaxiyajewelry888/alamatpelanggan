@@ -294,8 +294,15 @@ apiRouter.delete('/customers/:id', async (req: Request, res: Response) => {
     const id = req.params.id;
     const result = db.deleteCustomer(id);
 
-    // Directly delete row from Google Spreadsheet in background
-    syncService.deleteCustomerFromSpreadsheet(id).catch(e => console.warn('[Route] deleteCustomer sync warning:', e.message));
+    // Directly delete row from Google Spreadsheet (with timeout protection so client response is fast and reliable)
+    try {
+      await Promise.race([
+        syncService.deleteCustomerFromSpreadsheet(id, result.customer_name),
+        new Promise((_, reject) => setTimeout(() => reject(new Error('Sync timeout')), 6000))
+      ]);
+    } catch (e: any) {
+      console.warn('[Route] deleteCustomer sync warning:', e.message);
+    }
 
     res.json({ success: true, data: result });
   } catch (err: any) {
@@ -310,7 +317,16 @@ apiRouter.post('/customers/bulk-delete', async (req: Request, res: Response) => 
       return res.status(400).json({ success: false, error: 'Daftar ID pelanggan terpilih kosong.' });
     }
     const result = db.deleteCustomersBulk(customer_ids);
-    syncService.deleteCustomersBulkFromSpreadsheet(customer_ids).catch(e => console.warn('[Route] bulkDeleteCustomers sync warning:', e.message));
+
+    try {
+      await Promise.race([
+        syncService.deleteCustomersBulkFromSpreadsheet(result.deletedItems),
+        new Promise((_, reject) => setTimeout(() => reject(new Error('Sync timeout')), 8000))
+      ]);
+    } catch (e: any) {
+      console.warn('[Route] bulkDeleteCustomers sync warning:', e.message);
+    }
+
     res.json({ success: true, data: result });
   } catch (err: any) {
     res.status(400).json({ success: false, error: err.message });
@@ -321,8 +337,8 @@ apiRouter.post('/customers/bulk-delete', async (req: Request, res: Response) => 
 apiRouter.get('/address-groups', async (req: Request, res: Response) => {
   try {
     const forceRefresh = req.query.refresh === 'true';
-    if (forceRefresh || syncService.getLastPullTime() === 0 || Date.now() - syncService.getLastPullTime() > 4000) {
-      await syncService.pullFromSpreadsheet(forceRefresh);
+    if (forceRefresh) {
+      await syncService.pullFromSpreadsheet(true);
     }
     const groups = db.getGroupNames();
     res.json({ success: true, data: groups });
@@ -664,7 +680,14 @@ apiRouter.delete('/addresses/:id', async (req: Request, res: Response) => {
   try {
     const id = req.params.id;
     const result = db.deleteAddress(id);
-    syncService.deleteAddressFromSpreadsheet(id).catch(e => console.warn('[Route] deleteAddress sync warning:', e.message));
+    try {
+      await Promise.race([
+        syncService.deleteAddressFromSpreadsheet(id),
+        new Promise((_, reject) => setTimeout(() => reject(new Error('Sync timeout')), 6000))
+      ]);
+    } catch (e: any) {
+      console.warn('[Route] deleteAddress sync warning:', e.message);
+    }
     res.json({ success: true, data: result });
   } catch (err: any) {
     res.status(400).json({ success: false, error: err.message });
@@ -678,7 +701,14 @@ apiRouter.post('/addresses/bulk-delete', async (req: Request, res: Response) => 
       return res.status(400).json({ success: false, error: 'Daftar ID alamat terpilih kosong.' });
     }
     const result = db.deleteAddressesBulk(address_ids);
-    syncService.deleteAddressesBulkFromSpreadsheet(address_ids).catch(e => console.warn('[Route] bulkDeleteAddresses sync warning:', e.message));
+    try {
+      await Promise.race([
+        syncService.deleteAddressesBulkFromSpreadsheet(address_ids),
+        new Promise((_, reject) => setTimeout(() => reject(new Error('Sync timeout')), 8000))
+      ]);
+    } catch (e: any) {
+      console.warn('[Route] bulkDeleteAddresses sync warning:', e.message);
+    }
     res.json({ success: true, data: result });
   } catch (err: any) {
     res.status(400).json({ success: false, error: err.message });
@@ -688,9 +718,6 @@ apiRouter.post('/addresses/bulk-delete', async (req: Request, res: Response) => 
 // --- 4. COURIERS ---
 apiRouter.get('/couriers', async (req: Request, res: Response) => {
   try {
-    if (syncService.getLastPullTime() === 0) {
-      await syncService.pullFromSpreadsheet(true);
-    }
     const couriers = db.getCouriers();
     res.json({ success: true, data: couriers });
   } catch (err: any) {
@@ -713,7 +740,15 @@ apiRouter.post('/couriers', async (req: Request, res: Response) => {
       is_favorite: !!is_favorite,
       is_active: is_active !== false
     });
-    await syncService.syncCourierToSpreadsheet(newCourier);
+    // Await instant synchronization to Google Spreadsheet
+    try {
+      await Promise.race([
+        syncService.syncCourierToSpreadsheet(newCourier),
+        new Promise((_, reject) => setTimeout(() => reject(new Error('Sync timeout')), 6000))
+      ]);
+    } catch (e: any) {
+      console.warn('[Route] syncCourier warning:', e.message);
+    }
     res.status(201).json({ success: true, data: newCourier });
   } catch (err: any) {
     res.status(400).json({ success: false, error: err.message });
@@ -724,7 +759,14 @@ apiRouter.put('/couriers/:id', async (req: Request, res: Response) => {
   try {
     const id = req.params.id;
     const updated = db.updateCourier(id, req.body);
-    await syncService.syncCourierToSpreadsheet(updated);
+    try {
+      await Promise.race([
+        syncService.syncCourierToSpreadsheet(updated),
+        new Promise((_, reject) => setTimeout(() => reject(new Error('Sync timeout')), 6000))
+      ]);
+    } catch (e: any) {
+      console.warn('[Route] syncCourier warning:', e.message);
+    }
     res.json({ success: true, data: updated });
   } catch (err: any) {
     res.status(400).json({ success: false, error: err.message });
@@ -735,7 +777,14 @@ apiRouter.delete('/couriers/:id', async (req: Request, res: Response) => {
   try {
     const id = req.params.id;
     const result = db.deleteCourier(id);
-    syncService.deleteCourierFromSpreadsheet(id).catch(e => console.warn('[Route] deleteCourier sync warning:', e.message));
+    try {
+      await Promise.race([
+        syncService.deleteCourierFromSpreadsheet(id),
+        new Promise((_, reject) => setTimeout(() => reject(new Error('Sync timeout')), 6000))
+      ]);
+    } catch (e: any) {
+      console.warn('[Route] deleteCourier sync warning:', e.message);
+    }
     res.json({ success: true, data: result });
   } catch (err: any) {
     res.status(400).json({ success: false, error: err.message });

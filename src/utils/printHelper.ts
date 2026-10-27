@@ -40,7 +40,10 @@ export function openPrintWindow(options: PrintOptions): { success: boolean; url:
     const payload = options.addressIds.map(id => ({
       address_id: id,
       label_format: options.format,
-      copies: options.copies || 1
+      copies: options.copies || 1,
+      is_dropship: !!options.isDropship,
+      sender_name: options.dropshipName || undefined,
+      sender_phone: options.dropshipPhone || undefined
     }));
     fetch('/api/print-history', {
       method: 'POST',

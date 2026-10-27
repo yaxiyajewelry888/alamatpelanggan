@@ -216,6 +216,7 @@ export default function App() {
       onDelete: async () => {
         // Optimistic UI update: instantly remove customer from view
         setAllCustomers(prev => prev.filter(c => c.customer_id !== customer.customer_id));
+        window.dispatchEvent(new CustomEvent('customer-deleted', { detail: { customerId: customer.customer_id } }));
         setDeleteModalState(prev => ({ ...prev, isOpen: false }));
         if (detailCustomerId === customer.customer_id) {
           setIsCustomerDetailModalOpen(false);
@@ -251,6 +252,7 @@ export default function App() {
         // Optimistic UI update: instantly remove selected customers
         const idSet = new Set(customerIds);
         setAllCustomers(prev => prev.filter(c => !idSet.has(c.customer_id)));
+        window.dispatchEvent(new CustomEvent('customers-bulk-deleted', { detail: { customerIds } }));
         setDeleteModalState(prev => ({ ...prev, isOpen: false }));
         try {
           await fetch('/api/customers/bulk-delete', {
